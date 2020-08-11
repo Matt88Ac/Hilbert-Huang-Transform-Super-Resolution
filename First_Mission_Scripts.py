@@ -11,7 +11,8 @@ import time
 class Run:
     def __init__(self, csv_name: str):
         self.table = pd.read_csv(csv_name)
-        self.table.drop_duplicates(subset='File Name', keep=False)
+        self.table = self.table.dropna()
+        self.table = self.table.drop_duplicates(subset='File Name', keep=False)
         self.emd = EMD2D()
         self.name = csv_name
 
