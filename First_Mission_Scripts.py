@@ -44,7 +44,6 @@ class Run:
                                   'RMSE': rmse})
         self.table = self.table.append(to_append)
         self.table.to_csv(self.name, index=False)
-        os.remove(self.dir + '/' + fname[5:])
 
     def RunGreys(self):
         toOpen = self.checkExistence()
