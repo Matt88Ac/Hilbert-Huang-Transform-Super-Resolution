@@ -11,7 +11,7 @@ import time
 class Run:
     def __init__(self, csv_name: str):
         self.table = pd.read_csv(csv_name)
-        self.table = self.table.dropna()
+        #self.table = self.table.dropna()
         self.table = self.table.drop_duplicates(subset='File Name', keep=False)
         self.emd = EMD2D()
         self.name = csv_name
@@ -61,7 +61,7 @@ class Run:
 
         for name in toOpen:
             print(name)
-            fname = 'DATA/' + name
+            fname = 'DATA/' + name #'road_image.jpg'
             img = cv2.imread(fname, 0)
             resolution = img.shape
             color_mode = 'Grey'
@@ -70,6 +70,15 @@ class Run:
             med = np.median(img)
             mean = img.mean()
             picDecomposed = self.emd.emd(img)
+            #X, Y = self.emd.find_extrema(img)
+            #print('X = ', X)
+            #print('Y = ', Y)
+            #print(self.emd.find_extrema(img))
+            x1 = fromarray(picDecomposed[0])
+            x1.show()
+            print(picDecomposed.shape)
+            continue
+
             imshow(picDecomposed[0])
             #x1 = fromarray(picDecomposed)
             #x1.show()
