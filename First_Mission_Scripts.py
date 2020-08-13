@@ -4,6 +4,7 @@ import pandas as pd
 from matplotlib.pyplot import imshow, imread
 import cv2
 import os
+import platform
 from PIL.Image import fromarray
 import time
 
@@ -15,6 +16,8 @@ class Run:
         self.table = self.table.drop_duplicates(subset='File Name', keep=False)
         self.emd = EMD2D()
         self.name = csv_name
+        self.platform = platform.system()
+
 
     def checkExistence(self):
         temp = self.table['File Name'].copy()
@@ -27,10 +30,15 @@ class Run:
         return np.array([y[5:] for y in l1], dtype=str)
 
     def getFileNames(self):
-        dirc = os.getcwd()
-        dirc = dirc.replace(dirc[2], '/') + '/DATA'
-        self.dir = dirc
-        return np.array(os.listdir(dirc), dtype=str)
+        if self.platform == 'Windows':
+            dirc = os.getcwd()
+            dirc = dirc.replace(dirc[2], '/') + '/DATA'
+            self.dir = dirc
+            return np.array(os.listdir(dirc), dtype=str)
+        else:
+            dirc = os.getcwd() + "/DATA"
+            self.dir = dirc 
+            return np.array(os.listdir(dirc), dtype=str)
 
     def AddToCSV(self, fname: str, mode, resolution, mean, median, mx, mn, imfs, rmse):
         to_append = pd.DataFrame({'File Name': [fname],
@@ -69,15 +77,21 @@ class Run:
             minp = img.min()
             med = np.median(img)
             mean = img.mean()
-            picDecomposed = self.emd.emd(img)
-            imshow(picDecomposed[0])
-            #x1 = fromarray(picDecomposed)
-            #x1.show()
-            time.sleep(6)
-            numOfIMFs = picDecomposed.shape[0]
-            rmse = RMSE(img, np.sum(picDecomposed, axis=0))
-
-            self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, numOfIMFs, rmse)
+            try:
+                picDecomposed = self.emd(img)
+                imshow(picDecomposed[0])
+                #x1 = fromarray(picDecomposed)
+                #x1.show()
+                time.sleep(6)
+                numOfIMFs = picDecomposed.shape[0]
+                rmse = RMSE(img, np.sum(picDecomposed, axis=0))
+                self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, numOfIMFs, rmse)
+                print("--Done--")
+            except ValueError:
+                #TODO: Research into traceback of errors on the "bad images", and check for the conditions required.
+                # Add yet images to the csv file to avoid re-running on bad files.
+                self.AddToCSV(fname, color_mode, resolution, mean, med, maxp,minp,-1,-1)
+                print("Error occured during process {}".format(name))
 
 
 x = Run('FirstDataFrame1.csv')
