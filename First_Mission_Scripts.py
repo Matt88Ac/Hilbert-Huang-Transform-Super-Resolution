@@ -14,6 +14,9 @@ class Run:
         # self.table = self.table.dropna()
         self.table = self.table.drop_duplicates(subset='File Name', keep=False)
         self.emd = EMD2D()
+        self.emd.MAX_ITERATION = 10**4
+        #self.emd.mean_thr = 0.0001
+        #self.emd.mse_thr = 0.001
         self.name = csv_name
 
     def checkExistence(self):
@@ -86,8 +89,9 @@ class Run:
             # print('X = ', X)
             # print('Y = ', Y)
             # print(self.emd.find_extrema(img))
-            x1 = fromarray(picDecomposed[0])
+            x1 = fromarray(picDecomposed[0]+picDecomposed[1])
             x1.show()
+            #print(picDecomposed.shape)
             return
             tr = Trace(img)
             dif0, dif1 = Diffs(img)

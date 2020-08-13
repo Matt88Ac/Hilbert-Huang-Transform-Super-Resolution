@@ -14,6 +14,8 @@ class EMD2D:
         scale = img_max - img_min
         scaled_img = (img.copy() - img_min) / scale
 
+        IMF = np.zeros((img.shape[0], img.shape[1]))
+
     @classmethod
     def envelope(cls, img: np.ndarray):
         loc_min = local_minima(img)
