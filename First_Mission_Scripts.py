@@ -11,7 +11,7 @@ import time
 class Run:
     def __init__(self, csv_name: str):
         self.table = pd.read_csv(csv_name)
-        #self.table = self.table.dropna()
+        # self.table = self.table.dropna()
         self.table = self.table.drop_duplicates(subset='File Name', keep=False)
         self.emd = EMD2D()
         self.name = csv_name
@@ -32,7 +32,7 @@ class Run:
         self.dir = dirc
         return np.array(os.listdir(dirc), dtype=str)
 
-    def AddToCSV(self, fname: str, mode, resolution, mean, median, mx, mn, imfs, rmse):
+    def AddToCSV(self, fname: str, mode, resolution, mean, median, mx, mn, imfs, rmse, trace, diff0, diff1):
         to_append = pd.DataFrame({'File Name': [fname],
                                   'Color Mode': [mode],
                                   'Resolution': [resolution],
@@ -40,6 +40,9 @@ class Run:
                                   'Median Pixel Value': [median],
                                   'Max Pixel Value': [mx],
                                   'Min Pixel Value': [mn],
+                                  'Log Trace': [trace],
+                                  'Difference-Axis0': [diff0],
+                                  'Difference-Axis1': [diff1],
                                   'Number of IMFs': [imfs],
                                   'RMSE': rmse})
         self.table = self.table.append(to_append)
@@ -59,9 +62,18 @@ class Run:
             pixSize = expected.shape[0] * expected.shape[1]
             return (diff / pixSize) ** 0.5
 
+        def Trace(pic: np.ndarray):
+            mx = max(pic.shape[0], pic.shape[1])
+            to_ret = np.zeros((mx, mx))
+            to_ret[:pic.shape[0], :pic.shape[1]] = pic.copy()
+            return np.trace(to_ret)
+
+        def Diffs(pic: np.ndarray):
+            return abs(np.diff(pic.astype(int), axis=0)).max(), abs(np.diff(pic.astype(int), axis=1)).max()
+
         for name in toOpen:
             print(name)
-            fname = 'DATA/' + name #'road_image.jpg'
+            fname = 'DATA/' + name  # 'road_image.jpg'
             img = cv2.imread(fname, 0)
             resolution = img.shape
             color_mode = 'Grey'
@@ -70,23 +82,24 @@ class Run:
             med = np.median(img)
             mean = img.mean()
             picDecomposed = self.emd.emd(img)
-            #X, Y = self.emd.find_extrema(img)
-            #print('X = ', X)
-            #print('Y = ', Y)
-            #print(self.emd.find_extrema(img))
+            # X, Y = self.emd.find_extrema(img)
+            # print('X = ', X)
+            # print('Y = ', Y)
+            # print(self.emd.find_extrema(img))
             x1 = fromarray(picDecomposed[0])
             x1.show()
+            tr = Trace(img)
+            dif0, dif1 = Diffs(img)
             print(picDecomposed.shape)
-            continue
-
-            imshow(picDecomposed[0])
-            #x1 = fromarray(picDecomposed)
-            #x1.show()
+            # x1 = fromarray(picDecomposed)
+            # x1.show()
             time.sleep(6)
             numOfIMFs = picDecomposed.shape[0]
             rmse = RMSE(img, np.sum(picDecomposed, axis=0))
 
-            self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, numOfIMFs, rmse)
+            self.AddToCSV(fname=fname, mode=color_mode, resolution=resolution,
+                          mean=mean, median=med, mx=maxp, mn=minp, imfs=numOfIMFs, rmse=rmse, trace=tr,
+                          diff0=dif0, diff1=dif1)
 
 
 x = Run('FirstDataFrame1.csv')
