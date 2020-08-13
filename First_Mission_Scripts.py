@@ -40,7 +40,7 @@ class Run:
                                   'Median Pixel Value': [median],
                                   'Max Pixel Value': [mx],
                                   'Min Pixel Value': [mn],
-                                  'Log Trace': [trace],
+                                  'Trace': [np.log(trace)],
                                   'Difference-Axis0': [diff0],
                                   'Difference-Axis1': [diff1],
                                   'Number of IMFs': [imfs],
@@ -88,12 +88,9 @@ class Run:
             # print(self.emd.find_extrema(img))
             x1 = fromarray(picDecomposed[0])
             x1.show()
+            return
             tr = Trace(img)
             dif0, dif1 = Diffs(img)
-            print(picDecomposed.shape)
-            # x1 = fromarray(picDecomposed)
-            # x1.show()
-            time.sleep(6)
             numOfIMFs = picDecomposed.shape[0]
             rmse = RMSE(img, np.sum(picDecomposed, axis=0))
 
