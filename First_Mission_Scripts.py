@@ -92,7 +92,6 @@ class Run:
             x1 = fromarray(picDecomposed[0]+picDecomposed[1])
             x1.show()
             #print(picDecomposed.shape)
-            return
             tr = Trace(img)
             dif0, dif1 = Diffs(img)
             numOfIMFs = picDecomposed.shape[0]
