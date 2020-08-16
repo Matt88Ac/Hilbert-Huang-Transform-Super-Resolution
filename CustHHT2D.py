@@ -43,6 +43,8 @@ class EMD2D:
         px_min = min_points[0]
         py_min = min_points[1]
 
+        print(len(py_min) == len(px_min) and len(py_max) == len(px_max))
+
         max_values = img[local_maxima(img)]
         min_values = img[local_minima(img)]
 
@@ -66,13 +68,21 @@ class EMD2D:
         """
         LoG = ndimage.gaussian_filter(img, 2)
         thres = np.absolute(LoG).mean() * 0.75
+
+        bin_struct = ndimage.generate_binary_structure(2, 2)
+        mins = ndimage.minimum_filter(LoG, footprint=bin_struct)
+        maxs = ndimage.maximum_filter(LoG, footprint=bin_struct)
+
         rows = img.shape[0]
         columns = img.shape[1]
 
         def return_neighbors(im, n, k):
             return np.array([im[n - 1, k], img[n + 1, k], img[n, k - 1], img[n, k + 1]])
 
-        output = np.zeros(LoG.shape)
+        output = (maxs - mins) > thres
+        zero_cross = mins < 0 & maxs > 0
+        output = output & zero_cross
+        """""""""
         for i in range(1, rows - 1):
             for j in range(1, columns - 1):
                 neighbors = return_neighbors(LoG, i, j)
@@ -85,8 +95,8 @@ class EMD2D:
                     zero_cross = False if max_p > 0 else False
                 if (max_p - min_p) > thres and zero_cross:
                     output[i, j] = 1
-
-        return np.count_nonzero(output == 1)
+        """
+        return np.count_nonzero(output == True)
 
     @classmethod
     def end_condition(cls, image, IMFs):
@@ -129,13 +139,13 @@ class EMD2D:
                 # The code use the S number criterion, i.e the canidate will be elected as IMF after s consecutive
                 # runs in which the difference between local extrema and zero crossing is by at most 1. S is
                 # pre-determined.
-
                 imf = sift(x)
                 imf_old = imf.copy()
-                zero_crossing = EMD2D.count_zero_crossings(imf)
+                zero_crossing = self.count_zero_crossings(imf)
                 local_max, local_min = self.find_local_extrema(imf)
 
                 diff = (len(local_max[0]) + len(local_min[0])) - zero_crossing
+                print(abs(diff))
                 if abs(diff) < 1:
                     k_h += 1
                 else:
