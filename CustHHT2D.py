@@ -12,10 +12,11 @@ class EMD2D:
     NoIMFS: int = 0
 
     # TODO: Add functionality to decide for the stopping critertion.
-    def __init__(self, S_critertion=0, max_IMFs=0):
+    def __init__(self, img: np.ndarray, S_critertion=0, max_IMFs=10):
         self.MAX = 1000
         self.S_critertion = S_critertion
         self.max_IMFs = max_IMFs
+        self.imfs = self.EMD(img)
 
     def find_local_extrema(self, img):
         """ Class method to find local extrema in a given image.
@@ -76,7 +77,7 @@ class EMD2D:
                 p = LoG[i, j]
                 max_p = neighbors.max()
                 min_p = neighbors.min()
-                if (p > 0):
+                if p > 0:
                     zero_cross = True if min_p < 0 else False
                 else:
                     zero_cross = False if max_p > 0 else False
