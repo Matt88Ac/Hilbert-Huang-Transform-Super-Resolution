@@ -19,7 +19,7 @@ class EMD2D:
         self.imfs = self.EMD(img)
 
     @classmethod
-    def find_local_extrema(cls, img):
+    def find_local_extrema(cls, img: np.ndarray):
         """ Class method to find local extrema in a given image.
             The method returns indices of maximum and minimum respectively.
             Each represented by a tuple of array for each dimension.
@@ -37,29 +37,23 @@ class EMD2D:
         """
         max_points, min_points = cls.find_local_extrema(img)
 
-        px_max = max_points[0]
-        py_max = max_points[1]
-
-        px_min = min_points[0]
-        py_min = min_points[1]
-
-        print(len(py_min) == len(px_min) and len(py_max) == len(px_max))
-
-        max_values = img[local_maxima(img)]
-        min_values = img[local_minima(img)]
-
         def spline(X, Y, Z):
-            return interpolate.interp2d(X, Y, Z, kind='cubic')
+            spl = interpolate.SmoothBivariateSpline(X, Y, Z)
+            # spl = interpolate.interp2d(X, Y, Z, kind='cubic')
+            # spl = interpolate.Rbf(X, Y, Z)
+            return spl
 
-        splineMax = spline(px_max, py_max, max_values)
-        splineMin = spline(px_min, py_min, min_values)
+        splineMax = spline(max_points[0], max_points[1], img[local_maxima(img)])
+        splineMin = spline(min_points[0], min_points[1], img[local_minima(img)])
 
-        newx = np.arange(0, img.shape[0], 0.01)
-        newy = np.arange(0, img.shape[1], 0.01)
+        nx = np.arange(min_points[0].min(), max_points[0].max(), 0.2)
+        ny = np.arange(min_points[1].min(), max_points[1].max(), 0.2)
 
-        newx, newy = np.meshgrid(newx, newy)
+        newx, newy = np.meshgrid(nx, ny)
 
-        return splineMax(newx, newy), splineMin(newx, newy)
+        mx = splineMax(newx, newy).astype(float)
+        mn = splineMin(newx, newy).astype(float)
+        return mx, mn
 
     @classmethod
     def count_zero_crossings(cls, img):
@@ -76,8 +70,8 @@ class EMD2D:
         rows = img.shape[0]
         columns = img.shape[1]
 
-        def return_neighbors(im, n, k):
-            return np.array([im[n - 1, k], img[n + 1, k], img[n, k - 1], img[n, k + 1]])
+        # def return_neighbors(im, n, k):
+        #   return np.array([im[n - 1, k], img[n + 1, k], img[n, k - 1], img[n, k + 1]])
 
         output = (maxs - mins) > thres
         zero_cross = mins < 0 & maxs > 0
