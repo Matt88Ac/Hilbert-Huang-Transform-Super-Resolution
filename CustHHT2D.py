@@ -12,7 +12,7 @@ class EMD2D:
     NoIMFS: int = 0
 
     # TODO: Add functionality to decide for the stopping critertion.
-    def __init__(self, S_critertion=0, max_IMFs=0):
+    def __init__(self, S_critertion=6, max_IMFs=10):
         self.MAX = 1000
         self.S_critertion = S_critertion
         self.max_IMFs = max_IMFs
@@ -70,7 +70,6 @@ class EMD2D:
         def return_neighbors(img,i,j):
             return np.array([im[i-1,j],img[i+1,j],img[i,j-1],img[i,j+1]])
 
-
         output = np.zeros(LoG.shape)
         for i in range(1, rows-1):
             for j in range(1, columns-1):
@@ -84,7 +83,6 @@ class EMD2D:
                     zero_cross = False if max_p > 0 else False
                 if (max_p-min_p) > thres and zero_cross:
                     output[i,j] = 1 
-        
         return np.count_nonzero(output == 1)
 
     @classmethod
@@ -115,8 +113,8 @@ class EMD2D:
 
         # Creates a tensor such each matrix represents an IMF
         IMFs = np.empty((n,) + img.shape) 
-
-        while True:
+        notFinished = True
+        while notFinished:
             # At the k-th iteration of the decomposition, 
             # we refer to data as the original signal after being subtracted from the k-1 generated IMFs.
             x = image_s - np.sum(IMF[:n], axis=0)
@@ -130,30 +128,24 @@ class EMD2D:
                 # S is pre-determined.
                 imf_old = imf.copy()
                 imf  = sift(x)
-                
                 zero_crossing = EMD2D.count_zero_crossings(imf)
                 local_max, local_min = self.find_local_extrema(imf)
-
-                
-                diff = (len(local_max[0]) + len(local_min[0]) - zero_crossing
-                if math.abs(diff) < 1:
-                    k_h += 1
+                num_extrema = len(local_max[0]) + len(local_min[0]
+                if abs(num_extrema - zero_crossing) < 1:
+                    k_h = k_h + 1
                 else:
-                    k_h += 0 
-
+                    k_h = 0 
                 if k_h == self.S_critertion:
                     flag = False 
             
             # Add the chosen canidate to the IMFs
             IMFs = np.vstack((IMFs, imf.copy()[None,:]))
             n+= 1
-
-             if self.end_condition(image, IMFs) or (self.max_imf>0 and n>=max_imf):
+            if self.end_condition(image, IMFs) or (self.max_imf>0 and n>=self.max_imf):
                 notFinished = False
                 break
-
-         res = image_s - np.sum(IMF[:imfNo], axis=0)
-            if not np.allclose(res, 0):
+        res = image_s - np.sum(IMFs[:n], axis=0)
+        if not np.allclose(res, 0):
                 IMFs = np.vstack((IMFs, res[None,:]))
                 imfNo += 1
         IMFs = IMFs*scale
