@@ -75,11 +75,11 @@ class EMD2D:
         thres = np.absolute(LoG).mean() * 0.75
 
         bin_struct = ndimage.generate_binary_structure(2, 2)
-        mins = ndimage.minimum_filter(LoG, footprint=bin_struct) #== img
-        maxs = ndimage.maximum_filter(LoG, footprint=bin_struct) #== img
+        mins = ndimage.minimum_filter(LoG, footprint=bin_struct)  # == img
+        maxs = ndimage.maximum_filter(LoG, footprint=bin_struct)  # == img
 
-        rows = img.shape[0]
-        columns = img.shape[1]
+        # rows = img.shape[0]
+        # columns = img.shape[1]
 
         # def return_neighbors(im, n, k):
         #   return np.array([im[n - 1, k], img[n + 1, k], img[n, k - 1], img[n, k + 1]])
