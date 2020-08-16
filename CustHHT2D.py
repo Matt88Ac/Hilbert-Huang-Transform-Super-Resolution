@@ -16,7 +16,7 @@ class EMD2D:
         self.MAX = 1000
         self.S_critertion = S_critertion
         self.max_IMFs = max_IMFs
-            
+
     def find_local_extrema(self, img):
         """ Class method to find local extrema in a given image.
             The method returns indices of maximum and minimum respectively.
@@ -26,7 +26,7 @@ class EMD2D:
         min_points = local_minima(self.img, indices=True)
 
         return max_points, min_points
-        
+
     def envelope(self, img):
         """
         Class method returns splines created out of local maximum
@@ -56,35 +56,33 @@ class EMD2D:
 
         return splineMax(newx, newy), splineMin(newx, newy)
 
-    
     @classmethod
     def count_zero_crossings(cls, img):
         """ Class method returns number of zero crossings in given image.
             https://homepages.inf.ed.ac.uk/rbf/HIPR2/zeros.htm
         """
         LoG = ndimage.gaussian_filter(img, 2)
-        thres = np.absolute(LoG).mean() * 0.75 
+        thres = np.absolute(LoG).mean() * 0.75
         rows = img.shape[0]
         columns = img.shape[1]
 
-        def return_neighbors(img,i,j):
-            return np.array([im[i-1,j],img[i+1,j],img[i,j-1],img[i,j+1]])
-
+        def return_neighbors(im, n, k):
+            return np.array([im[n - 1, k], img[n + 1, k], img[n, k - 1], img[n, k + 1]])
 
         output = np.zeros(LoG.shape)
-        for i in range(1, rows-1):
-            for j in range(1, columns-1):
-                neighbors = return_neighbors(LoG,i,j)
-                p = LoG[i,j]
+        for i in range(1, rows - 1):
+            for j in range(1, columns - 1):
+                neighbors = return_neighbors(LoG, i, j)
+                p = LoG[i, j]
                 max_p = neighbors.max()
                 min_p = neighbors.min()
-                if (p>0):
-                    zero_cross = True if min_p < 0 else False 
+                if (p > 0):
+                    zero_cross = True if min_p < 0 else False
                 else:
                     zero_cross = False if max_p > 0 else False
-                if (max_p-min_p) > thres and zero_cross:
-                    output[i,j] = 1 
-        
+                if (max_p - min_p) > thres and zero_cross:
+                    output[i, j] = 1
+
         return np.count_nonzero(output == 1)
 
     @classmethod
@@ -102,73 +100,60 @@ class EMD2D:
         offset = img_min
         scale = img_max - img_min
 
-        img_s = (image-offset)/scale
+        img_s = (img - offset) / scale
 
-        def sift(imf):
+        def sift(imfK):
             """ Apply the sifting procedure on the given 2-D signal. """
-            max_envelope, min_envelope = self.envelope(imf)
-            mean = (max_envelope + min_envelope) * 0.5 
-            imf = imf - mean
-            return img
+            max_envelope, min_envelope = self.envelope(imfK)
+            mean = (max_envelope + min_envelope) * 0.5
+            imfK = imfK - mean
+            return imfK
 
-        n = 0 # Number of IMFs
+        n = 0  # Number of IMFs
 
         # Creates a tensor such each matrix represents an IMF
-        IMFs = np.empty((n,) + img.shape) 
+        IMFs = np.empty((n,) + img.shape)
 
         while True:
             # At the k-th iteration of the decomposition, 
             # we refer to data as the original signal after being subtracted from the k-1 generated IMFs.
-            x = image_s - np.sum(IMF[:n], axis=0)
+            x = img_s - np.sum(IMFs[:n], axis=0)
 
-            k = 0 # Iterations for current IMFs
-            k_h = 0 # number of consecutive iterations to compare to S number (explained below)
+            k = 0  # Iterations for current IMFs
+            k_h = 0  # number of consecutive iterations to compare to S number (explained below)
             flag = True
             while flag and k < self.MAX:
                 # The code use the S number criterion, i.e the canidate will be elected as IMF after s consecutive runs in
                 # which the difference between local extrema and zero crossing is by at most 1. 
                 # S is pre-determined.
                 imf_old = imf.copy()
-                imf  = sift(x)
-                
+                imf = sift(x)
+
                 zero_crossing = EMD2D.count_zero_crossings(imf)
                 local_max, local_min = self.find_local_extrema(imf)
 
-                
-                diff = (len(local_max[0]) + len(local_min[0]) - zero_crossing
-                if math.abs(diff) < 1:
+                diff = (len(local_max[0]) + len(local_min[0])) - zero_crossing
+                if abs(diff) < 1:
                     k_h += 1
                 else:
-                    k_h += 0 
+                    k_h += 0
 
                 if k_h == self.S_critertion:
-                    flag = False 
-            
-            # Add the chosen canidate to the IMFs
-            IMFs = np.vstack((IMFs, imf.copy()[None,:]))
-            n+= 1
+                    flag = False
 
-             if self.end_condition(image, IMFs) or (self.max_imf>0 and n>=max_imf):
-                notFinished = False
-                break
+                    # Add the chosen canidate to the IMFs
+                IMFs = np.vstack((IMFs, imf.copy()[None, :]))
+                n += 1
 
-         res = image_s - np.sum(IMF[:imfNo], axis=0)
+                if self.end_condition(img, IMFs) or (0 < self.max_imf <= n):
+                    notFinished = False
+                    break
+
+            res = img_s - np.sum(IMFs[:n], axis=0)
             if not np.allclose(res, 0):
-                IMFs = np.vstack((IMFs, res[None,:]))
-                imfNo += 1
-        IMFs = IMFs*scale
-        IMFs[-1] += offset
-        return IMFs
-        
+                IMFs = np.vstack((IMFs, res[None, :]))
+                n += 1
 
-
-
-
-
-
-    
-       
-                
-
-            
-
+            IMFs = IMFs * scale
+            IMFs[-1] += offset
+            return IMFs
