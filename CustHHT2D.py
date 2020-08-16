@@ -124,9 +124,9 @@ class EMD2D:
             k_h = 0  # number of consecutive iterations to compare to S number (explained below)
             flag = True
             while flag and k < self.MAX:
-                # The code use the S number criterion, i.e the canidate will be elected as IMF after s consecutive runs in
-                # which the difference between local extrema and zero crossing is by at most 1. 
-                # S is pre-determined.
+                # The code use the S number criterion, i.e the canidate will be elected as IMF after s consecutive
+                # runs in which the difference between local extrema and zero crossing is by at most 1. S is
+                # pre-determined.
                 imf_old = imf.copy()
                 imf = sift(x)
 
@@ -155,6 +155,7 @@ class EMD2D:
                 IMFs = np.vstack((IMFs, res[None, :]))
                 n += 1
 
-            IMFs = IMFs * scale
-            IMFs[-1] += offset
-            return IMFs
+        self.NoIMFS = n
+        IMFs = IMFs * scale
+        IMFs[-1] += offset
+        return IMFs
