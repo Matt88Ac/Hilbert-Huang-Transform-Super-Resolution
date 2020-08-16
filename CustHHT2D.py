@@ -18,22 +18,24 @@ class EMD2D:
         self.max_IMFs = max_IMFs
         self.imfs = self.EMD(img)
 
-    def find_local_extrema(self, img):
+    @classmethod
+    def find_local_extrema(cls, img):
         """ Class method to find local extrema in a given image.
             The method returns indices of maximum and minimum respectively.
             Each represented by a tuple of array for each dimension.
         """
-        max_points = local_maxima(self.img, indices=True)
-        min_points = local_minima(self.img, indices=True)
+        max_points = local_maxima(img, indices=True)
+        min_points = local_minima(img, indices=True)
 
         return max_points, min_points
 
-    def envelope(self, img):
+    @classmethod
+    def envelope(cls, img):
         """
         Class method returns splines created out of local maximum
         and minimum points in the image.
         """
-        max_points, min_points = self.find_local_extrema(img)
+        max_points, min_points = cls.find_local_extrema(img)
 
         px_max = max_points[0]
         py_max = max_points[1]
@@ -41,8 +43,8 @@ class EMD2D:
         px_min = min_points[0]
         py_min = min_points[1]
 
-        max_values = img[px_max, py_max]
-        min_values = img[px_min, py_max]
+        max_values = img[local_maxima(img)]
+        min_values = img[local_minima(img)]
 
         def spline(X, Y, Z):
             return interpolate.interp2d(X, Y, Z, kind='cubic')
@@ -127,9 +129,9 @@ class EMD2D:
                 # The code use the S number criterion, i.e the canidate will be elected as IMF after s consecutive
                 # runs in which the difference between local extrema and zero crossing is by at most 1. S is
                 # pre-determined.
-                imf_old = imf.copy()
-                imf = sift(x)
 
+                imf = sift(x)
+                imf_old = imf.copy()
                 zero_crossing = EMD2D.count_zero_crossings(imf)
                 local_max, local_min = self.find_local_extrema(imf)
 
@@ -155,7 +157,11 @@ class EMD2D:
                 IMFs = np.vstack((IMFs, res[None, :]))
                 n += 1
 
-        self.NoIMFS = n
-        IMFs = IMFs * scale
-        IMFs[-1] += offset
-        return IMFs
+            self.NoIMFS = n
+            IMFs = IMFs * scale
+            IMFs[-1] += offset
+            return IMFs
+
+
+imag = cv2.imread('DATA/input.jpg', 0)
+emd = EMD2D(imag, 0.01)
