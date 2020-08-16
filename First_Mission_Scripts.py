@@ -1,12 +1,12 @@
 from PyEMD.EMD2d import EMD2D
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import imshow, imread
+# from matplotlib.pyplot import imshow, imread
 import cv2
 import os
+import platform
 from PIL.Image import fromarray
-import time
-
+# import time
 
 class Run:
     def __init__(self, csv_name: str):
@@ -14,10 +14,11 @@ class Run:
         # self.table = self.table.dropna()
         self.table = self.table.drop_duplicates(subset='File Name', keep=False)
         self.emd = EMD2D()
-        self.emd.MAX_ITERATION = 10**4
-        #self.emd.mean_thr = 0.0001
-        #self.emd.mse_thr = 0.001
+        self.emd.MAX_ITERATION = 10 ** 4
+        # self.emd.mean_thr = 0.0001
+        # self.emd.mse_thr = 0.001
         self.name = csv_name
+        self.platform = platform.system()
 
     def checkExistence(self):
         temp = self.table['File Name'].copy()
@@ -30,10 +31,15 @@ class Run:
         return np.array([y[5:] for y in l1], dtype=str)
 
     def getFileNames(self):
-        dirc = os.getcwd()
-        dirc = dirc.replace(dirc[2], '/') + '/DATA'
-        self.dir = dirc
-        return np.array(os.listdir(dirc), dtype=str)
+        if self.platform == 'Windows':
+            dirc = os.getcwd()
+            dirc = dirc.replace(dirc[2], '/') + '/DATA'
+            self.dir = dirc
+            return np.array(os.listdir(dirc), dtype=str)
+        else:
+            dirc = os.getcwd() + "/DATA"
+            self.dir = dirc
+            return np.array(os.listdir(dirc), dtype=str)
 
     def AddToCSV(self, fname: str, mode, resolution, mean, median, mx, mn, imfs, rmse, trace, diff0, diff1):
         to_append = pd.DataFrame({'File Name': [fname],
@@ -84,22 +90,31 @@ class Run:
             minp = img.min()
             med = np.median(img)
             mean = img.mean()
-            picDecomposed = self.emd.emd(img)
-            # X, Y = self.emd.find_extrema(img)
-            # print('X = ', X)
-            # print('Y = ', Y)
-            # print(self.emd.find_extrema(img))
-            x1 = fromarray(picDecomposed[0]+picDecomposed[1])
-            x1.show()
-            #print(picDecomposed.shape)
             tr = Trace(img)
             dif0, dif1 = Diffs(img)
-            numOfIMFs = picDecomposed.shape[0]
-            rmse = RMSE(img, np.sum(picDecomposed, axis=0))
+            try:
+                picDecomposed = self.emd.emd(img)
+                # X, Y = self.emd.find_extrema(img)
+                # print('X = ', X)
+                # print('Y = ', Y)
+                # print(self.emd.find_extrema(img))
+                # x1 = fromarray(picDecomposed[0]+picDecomposed[1])
+                # x1.show()
+                # print(picDecomposed.shape)
+                # tr = Trace(img)
+                # dif0, dif1 = Diffs(img)
+                numOfIMFs = picDecomposed.shape[0]
+                rmse = RMSE(img, np.sum(picDecomposed, axis=0))
 
-            self.AddToCSV(fname=fname, mode=color_mode, resolution=resolution,
-                          mean=mean, median=med, mx=maxp, mn=minp, imfs=numOfIMFs, rmse=rmse, trace=tr,
-                          diff0=dif0, diff1=dif1)
+                self.AddToCSV(fname=fname, mode=color_mode, resolution=resolution,
+                              mean=mean, median=med, mx=maxp, mn=minp, imfs=numOfIMFs, rmse=rmse, trace=tr,
+                              diff0=dif0, diff1=dif1)
+            except ValueError:
+                # TODO: Research into traceback of errors on the "bad images", and check for the conditions required.
+                # Add yet images to the csv file to avoid re-running on bad files.
+                self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, -1, -1, trace=tr,
+                              diff0=dif0, diff1=dif1)
+                print("Error occured during process {}".format(name))
 
 
 x = Run('FirstDataFrame1.csv')
