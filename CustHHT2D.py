@@ -30,11 +30,12 @@ class EMD2D:
         return max_points, min_points
 
     @classmethod
-    def envelope(cls, img):
+    def envelope(cls, img: np.ndarray):
         """
         Class method returns splines created out of local maximum
         and minimum points in the image.
         """
+
         max_points, min_points = cls.find_local_extrema(img)
 
         def spline(X, Y, Z):
@@ -43,20 +44,30 @@ class EMD2D:
             # spl = interpolate.Rbf(X, Y, Z)
             return spl
 
+        # footprint = ndimage.generate_binary_structure(2, 2)
+
+        # minPoints = ndimage.minimum_filter(img, footprint=footprint) == img
+        # maxPoints = ndimage.maximum_filter(img, footprint=footprint) == img
+
+        # background = ndimage.binary_erosion(img == 0, structure=footprint, border_value=1)
+
+        # minPoints = minPoints ^ background
+        # maxPoints = maxPoints ^ background
+
         splineMax = spline(max_points[0], max_points[1], img[local_maxima(img)])
         splineMin = spline(min_points[0], min_points[1], img[local_minima(img)])
 
-        nx = np.arange(min_points[0].min(), max_points[0].max(), 0.2)
-        ny = np.arange(min_points[1].min(), max_points[1].max(), 0.2)
+        nx = np.arange(0, img.shape[0])
+        ny = np.arange(0, img.shape[1])
 
-        newx, newy = np.meshgrid(nx, ny)
+        # newx, newy = np.meshgrid(nx, ny)
 
-        mx = splineMax(newx, newy).astype(float)
-        mn = splineMin(newx, newy).astype(float)
-        return mx, mn
+        mx = splineMax(nx, ny).astype(float)
+        mn = splineMin(nx, ny).astype(float)
+        return mx, mn  # np.nonzero(maxPoints), np.nonzero(minPoints)
 
     @classmethod
-    def count_zero_crossings(cls, img):
+    def count_zero_crossings(cls, img: np.ndarray):
         """ Class method returns number of zero crossings in given image.
             https://homepages.inf.ed.ac.uk/rbf/HIPR2/zeros.htm
         """
@@ -64,8 +75,8 @@ class EMD2D:
         thres = np.absolute(LoG).mean() * 0.75
 
         bin_struct = ndimage.generate_binary_structure(2, 2)
-        mins = ndimage.minimum_filter(LoG, footprint=bin_struct)
-        maxs = ndimage.maximum_filter(LoG, footprint=bin_struct)
+        mins = ndimage.minimum_filter(LoG, footprint=bin_struct) #== img
+        maxs = ndimage.maximum_filter(LoG, footprint=bin_struct) #== img
 
         rows = img.shape[0]
         columns = img.shape[1]
@@ -73,9 +84,10 @@ class EMD2D:
         # def return_neighbors(im, n, k):
         #   return np.array([im[n - 1, k], img[n + 1, k], img[n, k - 1], img[n, k + 1]])
 
-        output = (maxs - mins) > thres
-        zero_cross = mins < 0 & maxs > 0
-        output = output & zero_cross
+        output = ((maxs - mins) > thres).astype(int)
+        zero_cross = (mins < 0).astype(int)
+        zero_cross *= (maxs > 0).astype(int)
+        output = output * zero_cross
         """""""""
         for i in range(1, rows - 1):
             for j in range(1, columns - 1):
@@ -90,7 +102,7 @@ class EMD2D:
                 if (max_p - min_p) > thres and zero_cross:
                     output[i, j] = 1
         """
-        return np.count_nonzero(output == True)
+        return np.count_nonzero(output == 1)
 
     @classmethod
     def end_condition(cls, image, IMFs):
@@ -139,7 +151,6 @@ class EMD2D:
                 local_max, local_min = self.find_local_extrema(imf)
 
                 diff = (len(local_max[0]) + len(local_min[0])) - zero_crossing
-                print(abs(diff))
                 if abs(diff) < 1:
                     k_h += 1
                 else:
@@ -152,7 +163,7 @@ class EMD2D:
                 IMFs = np.vstack((IMFs, imf.copy()[None, :]))
                 n += 1
 
-                if self.end_condition(img, IMFs) or (0 < self.max_imf <= n):
+                if self.end_condition(img, IMFs) or (0 < self.max_IMFs <= n):
                     notFinished = False
                     break
 
