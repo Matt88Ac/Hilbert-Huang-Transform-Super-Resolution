@@ -1,7 +1,7 @@
 from PIL.Image import fromarray
 import cv2
 import numpy as np
-from scipy import ndimage, interpolate
+from scipy import ndimage, interpolate, signal
 from skimage.morphology import local_maxima, local_minima
 
 
@@ -75,19 +75,35 @@ class EMD2D:
         thres = np.absolute(LoG).mean() * 0.75
 
         bin_struct = ndimage.generate_binary_structure(2, 2)
-        mins = ndimage.minimum_filter(LoG, footprint=bin_struct)  # == img
-        maxs = ndimage.maximum_filter(LoG, footprint=bin_struct)  # == img
+        mins = (ndimage.maximum_filter(-LoG, footprint=bin_struct) == -LoG).astype(int)
+        maxs = (ndimage.maximum_filter(LoG, footprint=bin_struct) == LoG).astype(int)
 
-        # rows = img.shape[0]
-        # columns = img.shape[1]
+        mins = mins * LoG
+        mins = (mins < 0).astype(int)
 
-        # def return_neighbors(im, n, k):
-        #   return np.array([im[n - 1, k], img[n + 1, k], img[n, k - 1], img[n, k + 1]])
+        maxs = maxs * LoG
+        maxs = (maxs > 0).astype(int)
+
+        biggerThanZero = LoG > 0
+        smallerThanZero = LoG < 0
+
+        fp = np.ones((3, 3))
+
+        biggerThanZero = signal.convolve2d(biggerThanZero, fp, mode='same')
+        smallerThanZero = signal.convolve2d(smallerThanZero, fp, mode='same')
+
+        biggerThanZero = (biggerThanZero > 0).astype(int)
+        smallerThanZero = (smallerThanZero > 0).astype(int)
+
+        biggerThanZero *= mins
+        smallerThanZero *= maxs
+
+        mins = (ndimage.maximum_filter(-LoG, footprint=bin_struct) == -LoG).astype(int) * LoG
+        maxs = (ndimage.maximum_filter(LoG, footprint=bin_struct) == LoG).astype(int) * LoG
 
         output = ((maxs - mins) > thres).astype(int)
-        zero_cross = (mins < 0).astype(int)
-        zero_cross *= (maxs > 0).astype(int)
-        output = output * zero_cross
+
+        output = output * biggerThanZero + output * smallerThanZero
         """""""""
         for i in range(1, rows - 1):
             for j in range(1, columns - 1):
@@ -102,7 +118,7 @@ class EMD2D:
                 if (max_p - min_p) > thres and zero_cross:
                     output[i, j] = 1
         """
-        return np.count_nonzero(output == 1)
+        return output.sum()
 
     @classmethod
     def end_condition(cls, image, IMFs):
