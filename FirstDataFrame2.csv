@@ -1,1 +1,4 @@
-File Name,Color Mode,Resolution,Mean Pixel Value,Median Pixel Value,Max Pixel Value,Min Pixel Value,Log Trace,Difference-Axis0,Difference-Axis1,Number of IMFs,RMSE
+File Name,Color Mode,Resolution,Mean Pixel Value,Median Pixel Value,Max Pixel Value,Min Pixel Value,Log Trace,Difference-Axis0,Difference-Axis1,Number of IMFs,RMSE,Trace
+DATA/00025.jpg,Grey,"(453, 604)",104.9443664751546,87.0,255,0,,217,217,9,6.246976839624059,10.899180787196396
+DATA/00026.jpg,Grey,"(417, 628)",147.80604179077122,184.0,255,0,,204,187,9,13.987338177638563,11.088659727398346
+DATA/00027.jpg,Grey,"(418, 630)",123.05844155844156,134.0,255,0,,213,223,9,17.249554980218264,10.96247504642097

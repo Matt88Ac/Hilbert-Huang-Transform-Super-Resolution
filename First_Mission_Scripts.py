@@ -6,6 +6,8 @@ import cv2
 import os
 import platform
 from PIL.Image import fromarray
+
+
 # import time
 
 class Run:
@@ -49,7 +51,7 @@ class Run:
                                   'Median Pixel Value': [median],
                                   'Max Pixel Value': [mx],
                                   'Min Pixel Value': [mn],
-                                  'Trace': [np.log(trace)],
+                                  'Log Trace': [np.log(trace)],
                                   'Difference-Axis0': [diff0],
                                   'Difference-Axis1': [diff1],
                                   'Number of IMFs': [imfs],
@@ -117,5 +119,5 @@ class Run:
                 print("Error occured during process {}".format(name))
 
 
-x = Run('FirstDataFrame1.csv')
+x = Run('FirstDataFrame2.csv')
 x.RunGreys()
