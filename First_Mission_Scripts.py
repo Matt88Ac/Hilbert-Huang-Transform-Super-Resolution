@@ -105,7 +105,7 @@ class Run:
                 # print(picDecomposed.shape)
                 # tr = Trace(img)
                 # dif0, dif1 = Diffs(img)
-                numOfIMFs = picDecomposed.NoIMFs
+                numOfIMFs = picDecomposed.IMFs.shape[0]
                 rmse = RMSE(img, picDecomposed.reConstruct())
 
                 self.AddToCSV(fname=fname, mode=color_mode, resolution=resolution,
