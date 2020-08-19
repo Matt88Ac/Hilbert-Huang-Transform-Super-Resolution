@@ -1,4 +1,4 @@
-from PyEMD.EMD2d import EMD2D
+from EMD2D import EMD2D
 import numpy as np
 import pandas as pd
 # from matplotlib.pyplot import imshow, imread
@@ -13,7 +13,7 @@ class Run:
         self.table = pd.read_csv(csv_name)
         # self.table = self.table.dropna()
         self.table = self.table.drop_duplicates(subset='File Name', keep=False)
-        self.emd = EMD2D()
+        self.emd = EMD2D
         self.emd.MAX_ITERATION = 10 ** 4
         # self.emd.mean_thr = 0.0001
         # self.emd.mse_thr = 0.001
@@ -93,7 +93,7 @@ class Run:
             tr = Trace(img)
             dif0, dif1 = Diffs(img)
             try:
-                picDecomposed = self.emd.emd(img)
+                picDecomposed = self.emd(img)
                 # X, Y = self.emd.find_extrema(img)
                 # print('X = ', X)
                 # print('Y = ', Y)
@@ -103,7 +103,7 @@ class Run:
                 # print(picDecomposed.shape)
                 # tr = Trace(img)
                 # dif0, dif1 = Diffs(img)
-                numOfIMFs = picDecomposed.shape[0]
+                numOfIMFs = picDecomposed.NoIMFs
                 rmse = RMSE(img, np.sum(picDecomposed, axis=0))
 
                 self.AddToCSV(fname=fname, mode=color_mode, resolution=resolution,
