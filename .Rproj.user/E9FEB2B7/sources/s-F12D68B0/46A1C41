@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1597852903098.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2848736734",
+    "id" : "46A1C41",
+    "lastKnownWriteTime" : 1597852661,
+    "last_content_update" : 1597853255338,
+    "path" : "C:/Users/tomda/Desktop/Projects/מחקר HHT-SR/Repository/Hilbert-Huang-Transform-Super-Resolution/RTryOut.R",
+    "project_path" : "RTryOut.R",
+    "properties" : {
+        "cursorPosition" : "3,14",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
