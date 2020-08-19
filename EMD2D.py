@@ -1,26 +1,27 @@
 import numpy as np
 from pyhht.emd import EmpiricalModeDecomposition as EMD
-from PyEMD.EEMD import EEMD
 import cv2
 from PIL.Image import fromarray
+from matplotlib.pyplot import imshow
 
 
 class EMD2D:
     IMFs: np.ndarray = np.array([])
+    Rs = None
+    Gs = None
+    Bs = None
     NoIMFs: int = 0
 
     def __init__(self, image: np.ndarray):
-        self.EEMD = EEMD()
         self.EMD = EMD
 
-        def EEMD_images_col(colOfImage: np.ndarray):
-            return self.EEMD.eemd(colOfImage)
+        self.shape = image.shape
 
         def emd_images_col(colOfImage: np.ndarray):
             return self.EMD(colOfImage).decompose()
 
         def concatZeros(row: np.ndarray, howMuch: int, bo) -> np.ndarray:
-            if not bo:
+            if len(row.shape) == 1:
                 return np.vstack((row, np.zeros((howMuch, row.shape[0]))))
             return np.vstack((row, np.zeros((howMuch, row.shape[1]))))
 
@@ -53,22 +54,26 @@ class EMD2D:
             deco = emd_images_col(img[:, 0])
             self.NoIMFs = deco.shape[0]
             self.IMFs = deco.copy()
-            # for i in range(1, deco.shape[0]):
-            #   self.IMFs = np.vstack((self.IMFs, np.array([deco[i]])))
 
             for i in range(1, img.shape[1]):
                 deco = emd_images_col(img[:, i])
                 AddDecomposed(deco.copy())
+            return self.IMFs.copy()
 
         if len(image.shape) == 3:
-            Run(image[:, :, 0])
-            Run(image[:, :, 1])
-            Run(image[:, :, 2])
+            self.Rs = Run(image[:, :, 0])
+            self.Gs = Run(image[:, :, 1])
+            self.Bs = Run(image[:, :, 2])
 
         else:
             Run(image)
 
+    def reConstruct(self):
+        def act(Imfs: np.ndarray):
+            return np.sum(Imfs, axis=0)
 
-imge = cv2.imread('DATA/input.jpg', 0)
-x = EMD2D(image=imge)
-print(x.NoIMFs)
+        if self.Bs is None:
+            return act(self.IMFs).transpose()
+
+        else:
+            return cv2.merge((act(self.Rs).transpose(), act(self.Gs).transpose(), act(self.Bs).transpose()))
