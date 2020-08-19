@@ -1,5 +1,4 @@
 library(EMD)
 library(imager)
 img <- load.image('DATA/00025.jpg')
-Deco <- emd2d()
-
+plot(img)
