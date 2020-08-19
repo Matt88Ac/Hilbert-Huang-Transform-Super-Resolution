@@ -61,9 +61,13 @@ class EMD2D:
             return self.IMFs.copy()
 
         if len(image.shape) == 3:
+            No = 0
             self.Rs = Run(image[:, :, 0])
+            No += self.NoIMFs
             self.Gs = Run(image[:, :, 1])
+            No += self.NoIMFs
             self.Bs = Run(image[:, :, 2])
+            self.NoIMFs += No
 
         else:
             Run(image)

@@ -118,6 +118,63 @@ class Run:
                               diff0=dif0, diff1=dif1)
                 print("Error occured during process {}".format(name))
 
+    def RunColored(self):
+        toOpen = self.checkExistence()
 
-x = Run('FirstDataFrame2.csv')
-x.RunGreys()
+        def RMSE(expected: np.ndarray, estimated: np.ndarray):
+            if expected.shape != estimated.shape:
+                x1 = fromarray(expected)
+                x2 = fromarray(np.sum(estimated, axis=0))
+                x1.show()
+                x2.show()
+                return 300
+            diff = np.sum((expected - estimated) ** 2)
+            pixSize = expected.shape[0] * expected.shape[1] * 3
+            return (diff / pixSize) ** 0.5
+
+        def Trace(pic: np.ndarray):
+            def getT(i: int):
+                mx = max(pic.shape[0], pic.shape[1])
+                to_ret = np.zeros((mx, mx))
+                to_ret[:pic.shape[0], :pic.shape[1]] = pic[:, :, i].copy()
+                return np.trace(to_ret)
+            return (getT(0) + getT(1) + getT(2))/3
+
+        def Diffs(pic: np.ndarray):
+            return abs(np.diff(pic.astype(int), axis=0)).max(), abs(np.diff(pic.astype(int), axis=1)).max()
+
+        for name in toOpen:
+            print(name)
+            fname = 'DATA/' + name  # 'road_image.jpg'
+            img = cv2.imread(fname)
+            resolution = img.shape
+            color_mode = 'RGB'
+            maxp = img.max()
+            minp = img.min()
+            med = np.median(img)
+            mean = img.mean()
+            tr = Trace(img)
+            dif0, dif1 = Diffs(img)
+            try:
+                picDecomposed = self.emd(img)
+                # X, Y = self.emd.find_extrema(img)
+                # print('X = ', X)
+                # print('Y = ', Y)
+                # print(self.emd.find_extrema(img))
+                # x1 = fromarray(picDecomposed[0]+picDecomposed[1])
+                # x1.show()
+                # print(picDecomposed.shape)
+                # tr = Trace(img)
+                # dif0, dif1 = Diffs(img)
+                numOfIMFs = picDecomposed.NoIMFs
+                rmse = RMSE(img, picDecomposed.reConstruct())
+
+                self.AddToCSV(fname=fname, mode=color_mode, resolution=resolution,
+                              mean=mean, median=med, mx=maxp, mn=minp, imfs=numOfIMFs, rmse=rmse, trace=tr,
+                              diff0=dif0, diff1=dif1)
+            except ValueError:
+                # TODO: Research into traceback of errors on the "bad images", and check for the conditions required.
+                # Add yet images to the csv file to avoid re-running on bad files.
+                self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, -1, -1, trace=tr,
+                              diff0=dif0, diff1=dif1)
+                print("Error occured during process {}".format(name))
