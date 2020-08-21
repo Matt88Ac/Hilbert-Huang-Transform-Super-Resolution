@@ -1,0 +1,6 @@
+numpy 
+matplotlib
+scipy
+cv2
+pandas 
+pyhht

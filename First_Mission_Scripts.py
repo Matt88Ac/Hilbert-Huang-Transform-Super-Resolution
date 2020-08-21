@@ -172,7 +172,7 @@ class Run:
                 self.AddToCSV(fname=fname, mode=color_mode, resolution=resolution,
                               mean=mean, median=med, mx=maxp, mn=minp, imfs=numOfIMFs, rmse=rmse, trace=tr,
                               diff0=dif0, diff1=dif1)
-            except ValueError:
+            except Exception as ex:
                 # TODO: Research into traceback of errors on the "bad images", and check for the conditions required.
                 # Add yet images to the csv file to avoid re-running on bad files.
                 self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, -1, -1, trace=tr,
