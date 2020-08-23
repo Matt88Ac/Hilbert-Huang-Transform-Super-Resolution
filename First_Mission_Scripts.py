@@ -178,3 +178,8 @@ class Run:
                 self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, -1, -1, trace=tr,
                               diff0=dif0, diff1=dif1)
                 print("Error occured during process {}".format(name))
+
+
+
+x = Run('new.csv')
+x.RunGreys()
