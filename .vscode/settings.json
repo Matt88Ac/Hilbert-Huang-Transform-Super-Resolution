@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/Users/moshiko/anaconda3/envs/hht/bin/python"
+    "python.pythonPath": "/Users/moshiko/anaconda3/envs/hht/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
