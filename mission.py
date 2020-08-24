@@ -1,4 +1,4 @@
-from PyEMD.EMD2d import EMD2D
+import EMD2D
 import numpy as np
 import pandas as pd
 from matplotlib.pyplot import imshow, imread
@@ -14,7 +14,7 @@ class Run:
         self.table = pd.read_csv(csv_name)
         #self.table = self.table.dropna()
         self.table = self.table.drop_duplicates(subset='File Name', keep=False)
-        self.emd = EMD2D()
+        self.emd = EMD2D.EMD()
         self.name = csv_name
         self.platform = platform.system()
 
@@ -87,7 +87,7 @@ class Run:
                 rmse = RMSE(img, np.sum(picDecomposed, axis=0))
                 self.AddToCSV(fname, color_mode, resolution, mean, med, maxp, minp, numOfIMFs, rmse)
                 print("--Done--")
-            except ValueError:
+            except Exception as ex:
                 #TODO: Research into traceback of errors on the "bad images", and check for the conditions required.
                 # Add yet images to the csv file to avoid re-running on bad files.
                 self.AddToCSV(fname, color_mode, resolution, mean, med, maxp,minp,-1,-1)
