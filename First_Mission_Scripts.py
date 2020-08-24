@@ -61,6 +61,7 @@ class Run:
 
     def RunGreys(self):
         toOpen = self.checkExistence()
+        toOpen = toOpen[::-1]
 
         def RMSE(expected: np.ndarray, estimated: np.ndarray):
             if expected.shape != estimated.shape:
@@ -138,7 +139,8 @@ class Run:
                 to_ret = np.zeros((mx, mx))
                 to_ret[:pic.shape[0], :pic.shape[1]] = pic[:, :, i].copy()
                 return np.trace(to_ret)
-            return (getT(0) + getT(1) + getT(2))/3
+
+            return (getT(0) + getT(1) + getT(2)) / 3
 
         def Diffs(pic: np.ndarray):
             return abs(np.diff(pic.astype(int), axis=0)).max(), abs(np.diff(pic.astype(int), axis=1)).max()
@@ -180,6 +182,5 @@ class Run:
                 print("Error occured during process {}".format(name))
 
 
-
-x = Run('new.csv')
-x.RunGreys()
+#x = Run('new.csv')
+#x.RunGreys()
