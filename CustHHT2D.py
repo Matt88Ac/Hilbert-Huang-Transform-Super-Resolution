@@ -15,15 +15,15 @@ class EMD2D:
     def __init__(self, S_critertion=6, max_IMFs=10):
         self.MAX = 1000
         self.S_critertion = S_critertion
-        self.max_IMFs = max_IMFs
+        self.max_imf = max_IMFs
             
     def find_local_extrema(self, img):
         """ Class method to find local extrema in a given image.
             The method returns indices of maximum and minimum respectively.
             Each represented by a tuple of array for each dimension.
         """
-        max_points = local_maxima(self.img, indices=True)
-        min_points = local_minima(self.img, indices=True)
+        max_points = local_maxima(img, indices=True)
+        min_points = local_minima(img, indices=True)
 
         return max_points, min_points
         
@@ -34,6 +34,7 @@ class EMD2D:
         """
         max_points, min_points = self.find_local_extrema(img)
 
+        """
         px_max = max_points[0]
         py_max = max_points[1]
 
@@ -42,10 +43,12 @@ class EMD2D:
 
         max_values = img[px_max, py_max]
         min_values = img[px_min, py_max]
+        """
 
         def spline(X, Y, Z):
-            return interpolate.interp2d(X, Y, Z, kind='cubic')
+            return interpolate.SmoothBivariateSpline(X, Y, Z)
 
+        """
         splineMax = spline(px_max, py_max, max_values)
         splineMin = spline(px_min, py_min, min_values)
 
@@ -53,8 +56,22 @@ class EMD2D:
         newy = np.arange(0, img.shape[1], 0.01)
 
         newx, newy = np.meshgrid(newx, newy)
+        """
 
-        return splineMax(newx, newy), splineMin(newx, newy)
+        splineMax = spline(max_points[0], max_points[1], img[local_maxima(img)])
+        splineMin = spline(min_points[0], min_points[1], img[local_minima(img)])
+
+
+        nx = np.arange(0, img.shape[0])
+        ny = np.arange(0, img.shape[1])
+
+        # newx, newy = np.meshgrid(nx, ny)
+
+        mx = splineMax(nx, ny).astype(float)
+        mn = splineMin(nx, ny).astype(float)
+        return mx, mn  # np.nonzero(maxPoints), np.nonzero(minPoints)
+
+        #return splineMax(newx, newy), splineMin(newx, newy)
 
     
     @classmethod
@@ -68,7 +85,7 @@ class EMD2D:
         columns = img.shape[1]
 
         def return_neighbors(img,i,j):
-            return np.array([im[i-1,j],img[i+1,j],img[i,j-1],img[i,j+1]])
+            return np.array([img[i-1,j],img[i+1,j],img[i,j-1],img[i,j+1]])
 
         output = np.zeros(LoG.shape)
         for i in range(1, rows-1):
@@ -100,24 +117,27 @@ class EMD2D:
         offset = img_min
         scale = img_max - img_min
 
-        img_s = (image-offset)/scale
+        img_s = (img-offset)/scale
 
         def sift(imf):
             """ Apply the sifting procedure on the given 2-D signal. """
             max_envelope, min_envelope = self.envelope(imf)
             mean = (max_envelope + min_envelope) * 0.5 
             imf = imf - mean
-            return img
+            return imf
 
         n = 0 # Number of IMFs
 
         # Creates a tensor such each matrix represents an IMF
         IMFs = np.empty((n,) + img.shape) 
         notFinished = True
+
+
         while notFinished:
             # At the k-th iteration of the decomposition, 
             # we refer to data as the original signal after being subtracted from the k-1 generated IMFs.
-            x = image_s - np.sum(IMF[:n], axis=0)
+            res = img_s - np.sum(IMFs[:n], axis=0)
+            x = res.copy()
 
             k = 0 # Iterations for current IMFs
             k_h = 0 # number of consecutive iterations to compare to S number (explained below)
@@ -126,28 +146,29 @@ class EMD2D:
                 # The code use the S number criterion, i.e the canidate will be elected as IMF after s consecutive runs in
                 # which the difference between local extrema and zero crossing is by at most 1. 
                 # S is pre-determined.
-                imf_old = imf.copy()
                 imf  = sift(x)
                 zero_crossing = EMD2D.count_zero_crossings(imf)
                 local_max, local_min = self.find_local_extrema(imf)
-                num_extrema = len(local_max[0]) + len(local_min[0]
+                num_extrema = len(local_max[0]) + len(local_min[0])
                 if abs(num_extrema - zero_crossing) < 1:
                     k_h = k_h + 1
                 else:
-                    k_h = 0 
+                    k_h = 0
+
                 if k_h == self.S_critertion:
                     flag = False 
-            
+                x = imf.copy()
+                
             # Add the chosen canidate to the IMFs
             IMFs = np.vstack((IMFs, imf.copy()[None,:]))
             n+= 1
-            if self.end_condition(image, IMFs) or (self.max_imf>0 and n>=self.max_imf):
+            if self.end_condition(img, IMFs) or (self.max_imf>0 and n>=self.max_imf):
                 notFinished = False
                 break
-        res = image_s - np.sum(IMFs[:n], axis=0)
+        res = img_s - np.sum(IMFs[:n], axis=0)
         if not np.allclose(res, 0):
                 IMFs = np.vstack((IMFs, res[None,:]))
-                imfNo += 1
+                n += 1
         IMFs = IMFs*scale
         IMFs[-1] += offset
         return IMFs
@@ -155,7 +176,12 @@ class EMD2D:
 
 
 
-
+if __name__ == "__main__":
+    emd = EMD2D()
+    img = cv2.imread('DATA/00025.jpg',0)
+    imfs = emd.EMD(img)
+    print(imfs.shape)
+    
 
 
     
