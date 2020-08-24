@@ -120,7 +120,7 @@ class Run:
 
     def RunColored(self):
         toOpen = self.checkExistence()
-
+        toOpen = toOpen[::-1]
         def RMSE(expected: np.ndarray, estimated: np.ndarray):
             if expected.shape != estimated.shape:
                 x1 = fromarray(expected)
