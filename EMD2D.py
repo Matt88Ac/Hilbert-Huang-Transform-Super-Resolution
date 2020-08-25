@@ -1,8 +1,6 @@
 import numpy as np
 from pyhht.emd import EmpiricalModeDecomposition as EMD
 import cv2
-from PIL.Image import fromarray
-from matplotlib.pyplot import imshow
 
 
 class EMD2D:
@@ -72,9 +70,12 @@ class EMD2D:
         else:
             Run(image)
 
+    def __getitem__(self, imf):
+        return self.IMFs[imf].transpose().astype(np.uint8)
+
     def reConstruct(self):
         def act(Imfs: np.ndarray):
-            return np.sum(Imfs, axis=0)
+            return np.sum(Imfs, axis=0).astype(np.uint8)
 
         if self.Bs is None:
             return act(self.IMFs).transpose()
