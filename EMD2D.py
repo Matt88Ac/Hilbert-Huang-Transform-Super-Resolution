@@ -1,6 +1,8 @@
 import numpy as np
 from pyhht.emd import EmpiricalModeDecomposition as EMD
 import cv2
+from scipy import ndimage, signal
+from MyKernels import Sharpen3x3
 
 
 class EMD2D:
@@ -98,5 +100,14 @@ class EMD2D:
         return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
                           act(self.Bs).transpose().astype(np.uint8)))
 
-    def Show(self):
-        return cv2.cvtColor(self.reConstruct(), cv2.COLOR_BGR2RGB)
+    def Show(self, median_filter=True, sharp=False):
+        ret = cv2.cvtColor(self.reConstruct(), cv2.COLOR_BGR2RGB)
+        if median_filter:
+            ret = ndimage.median_filter(ret, 3)
+
+        if sharp:
+            ret[:, :, 0] = signal.convolve2d(ret[:, :, 0], Sharpen3x3, mode='same')
+            ret[:, :, 1] = signal.convolve2d(ret[:, :, 1], Sharpen3x3, mode='same')
+            ret[:, :, 2] = signal.convolve2d(ret[:, :, 2], Sharpen3x3, mode='same')
+
+        return ret
