@@ -71,21 +71,22 @@ class EMD2D:
 
     def __getitem__(self, imf):
         if len(self.shape) == 2:
-            return self.IMFs[imf].transpose().astype(np.uint8)
+            if imf < self.IMFs.shape[0]:
+                return self.IMFs[imf].transpose().astype(np.uint8)
+            return np.zeros(self.shape).astype(np.uint8)
 
-        part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]))
+        part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]), dtype=np.uint8)
 
-        if imf < self.Rs.shape[2]:
+        if imf < self.Rs.shape[0]:
             part1 = self.Rs[imf, :, :].transpose().astype(np.uint8)
 
-        if imf < self.Gs.shape[2]:
+        if imf < self.Gs.shape[0]:
             part2 = self.Gs[imf, :, :].transpose().astype(np.uint8)
 
-        if imf < self.Bs.shape[2]:
+        if imf < self.Bs.shape[0]:
             part3 = self.Bs[imf, :, :].transpose().astype(np.uint8)
 
         return cv2.merge((part1, part2, part3))
-
 
     def reConstruct(self):
         def act(Imfs: np.ndarray, axis=0):
@@ -96,3 +97,6 @@ class EMD2D:
 
         return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
                           act(self.Bs).transpose().astype(np.uint8)))
+
+    def Show(self):
+        return cv2.cvtColor(self.reConstruct(), cv2.COLOR_BGR2RGB)
