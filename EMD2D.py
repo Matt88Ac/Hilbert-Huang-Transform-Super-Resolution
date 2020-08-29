@@ -48,7 +48,7 @@ class EMD2D:
                 newArr = np.vstack((newArr, ta))
             self.IMFs = newArr.copy()
 
-        def Run(img: np.ndarray):
+        def Run(img: np.ndarray) -> np.ndarray:
             deco = emd_images_col(img[:, 0])
             self.NoIMFs = deco.shape[0]
             self.IMFs = deco.copy()
@@ -66,19 +66,33 @@ class EMD2D:
             No += self.NoIMFs
             self.Bs = Run(image[:, :, 2])
             self.NoIMFs += No
-
         else:
             Run(image)
 
     def __getitem__(self, imf):
-        return self.IMFs[imf].transpose().astype(np.uint8)
+        if len(self.shape) == 2:
+            return self.IMFs[imf].transpose().astype(np.uint8)
+
+        part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]))
+
+        if imf < self.Rs.shape[2]:
+            part1 = self.Rs[imf, :, :].transpose().astype(np.uint8)
+
+        if imf < self.Gs.shape[2]:
+            part2 = self.Gs[imf, :, :].transpose().astype(np.uint8)
+
+        if imf < self.Bs.shape[2]:
+            part3 = self.Bs[imf, :, :].transpose().astype(np.uint8)
+
+        return cv2.merge((part1, part2, part3))
+
 
     def reConstruct(self):
-        def act(Imfs: np.ndarray):
-            return np.sum(Imfs, axis=0).astype(np.uint8)
+        def act(Imfs: np.ndarray, axis=0):
+            return np.sum(Imfs, axis=axis)
 
-        if self.Bs is None:
-            return act(self.IMFs).transpose()
+        if len(self.shape) == 2:
+            return act(self.IMFs).transpose().astype(np.uint8)
 
-        else:
-            return cv2.merge((act(self.Rs).transpose(), act(self.Gs).transpose(), act(self.Bs).transpose()))
+        return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
+                          act(self.Bs).transpose().astype(np.uint8)))
