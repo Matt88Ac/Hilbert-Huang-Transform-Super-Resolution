@@ -1,8 +1,11 @@
 <component name="ProjectDictionaryState">
   <dictionary name="Mat">
     <words>
+      <w>bicubic</w>
+      <w>bilinear</w>
       <w>dirc</w>
       <w>imfs</w>
+      <w>lanczos</w>
       <w>rmse</w>
     </words>
   </dictionary>
