@@ -52,14 +52,17 @@ def Lanczos4(img: np.ndarray, w: float, h: float):
 
 
 def RBF(img: np.ndarray, w: float, h: float, function='gaussian'):
-    empty = RescaleAndScatter(img, w, h)
+    empty: np.ndarray = RescaleAndScatter(img, w, h)
+    xx, yy = np.meshgrid(range(img.shape[0]), range(img.shape[1]))
+    interp = interpolate.Rbf(xx, yy, img, function=function, smooth=0.001)
+    #XI = np.linspace(0, img.shape[0], int(img.shape[0] * w))
+    #YI = np.linspace(0, img.shape[1], int(img.shape[1] * h))
 
-    def forChannel(channel: int):
-        im: np.ndarray = img[:, :, channel].copy()
-        x, y = im.shape
-        x, y = np.meshgrid(x, y)
+    #XI, YI = np.meshgrid(XI, YI)
+    #res = interp(XI, YI)
 
-        return interpolate.Rbf(x, y, im, function=function)
+    #res = Image.fromarray(res)
+    #res.show()
 
 
 def RescaleAndScatter(img: np.ndarray, w: float, h: float) -> np.ndarray:
@@ -68,8 +71,8 @@ def RescaleAndScatter(img: np.ndarray, w: float, h: float) -> np.ndarray:
     new_Shape[0] = int(w * img.shape[0])
     new_Shape[1] = int(h * img.shape[1])
 
-    # new_img: np.ndarray = np.ones(tuple(new_Shape)) * -1
-    new_img: np.ndarray = np.ones(tuple(new_Shape), dtype=np.uint8) * 0
+    new_img: np.ndarray = np.ones(tuple(new_Shape)) * -1
+    # new_img: np.ndarray = np.ones(tuple(new_Shape), dtype=np.uint8) * 0
 
     to_interp_x: np.ndarray = np.arange(0, img.shape[0]) * w
     to_interp_y: np.ndarray = np.arange(0, img.shape[1]) * h
@@ -92,14 +95,20 @@ def RescaleAndScatter(img: np.ndarray, w: float, h: float) -> np.ndarray:
 
     new_img[to_interp_x, to_interp_y] = img[for_original_x, for_original_y]
 
+    return new_img
+
     # new_img[new_img > 0] = 1
     # print(new_img.sum())
     # new_img[new_img > 0] = 255
-    x = Image.fromarray(new_img)
-    x.show()
+    # x = Image.fromarray(new_img)
+    # x.show()
     # img[img > 0] = 1
     # print(img.sum())
 
 
-image = cv2.imread('DATA/dog.jpg', 0)
-RescaleAndScatter(image, 3.55, 2.2)
+#image = cv2.imread('DATA/dog.jpg', 0)
+#image = cv2.resize(image, (70, 70), interpolation=cv2.INTER_CUBIC)
+# image = Image.fromarray(image)
+# image.show()
+# RescaleAndScatter(image, 3.55, 2.2)
+#RBF(image, 5, 2)
