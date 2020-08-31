@@ -1,9 +1,9 @@
-from Interpolations import Gaussian, MitchelCubic, Bicubic, Bilinear, Lanczos4, Lanczos3, Lanczos5, imreadAndEMD
+from Interpolations import def_interpolations, imreadAndEMD, EMD2D
 import pandas as pd
 import os
 import numpy as np
 import platform
-
+from itertools import combinations_with_replacement
 
 class newRun:
     def __init__(self, fname, colored=0):
@@ -34,3 +34,9 @@ class newRun:
             dirc = os.getcwd() + "/DATA"
             self.dir = dirc
             return np.array(os.listdir(dirc), dtype=str)
+
+    @classmethod
+    def getPermutations(cls, decomposed: EMD2D):
+        n = len(decomposed)
+        return list(combinations_with_replacement(def_interpolations, n))
+

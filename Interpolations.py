@@ -23,9 +23,6 @@ def MitchelCubic(img: np.ndarray, w: float, h: float):
     return image.resize(img, size=new_Shape, method=image.ResizeMethod.MITCHELLCUBIC).numpy().astype(np.uint8)
 
 
-# img = cv2.imread('DATA/dog.jpg')
-# x1 = Image.fromarray(Gaussian(img, 2, 2))
-# x1.show()
 def Lanczos3(img: np.ndarray, w: float, h: float):
     new_Shape = [0, 0]
     new_Shape[0] = int(w * img.shape[0])
@@ -64,6 +61,12 @@ def Lanczos4(img: np.ndarray, w: float, h: float):
     new_Shape[1] = int(h * img.shape[1])
 
     return cv2.resize(img, dsize=tuple(new_Shape), interpolation=cv2.INTER_LANCZOS4)
+
+
+def_interpolations = [Gaussian, Bicubic, Bilinear, Lanczos5, Lanczos3, Lanczos4, MitchelCubic]
+
+
+# ********************************************************************************************************** #
 
 
 def RBF(img: np.ndarray, w: float, h: float, function='gaussian'):

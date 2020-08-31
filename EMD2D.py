@@ -13,6 +13,9 @@ class EMD2D:
     NoIMFs: int = 0
 
     def __init__(self, image: np.ndarray):
+        if image is None:
+            return
+
         self.EMD = EMD
 
         self.shape = image.shape
@@ -121,3 +124,29 @@ class EMD2D:
             ret[:, :, 2] = signal.convolve2d(ret[:, :, 2], Sharpen3x3, mode='same')
 
         return ret
+
+    def __len__(self):
+        if len(self.shape) == 2:
+            return self.IMFs.shape[0]
+        return max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0])
+
+    def __copy__(self):
+        tmp = EMD2D(None)
+        tmp.shape = self.shape
+        tmp.IMFs = self.IMFs.copy()
+
+        if self.Gs:
+            tmp.Gs = self.Gs.copy()
+            tmp.Bs = self.Bs.copy()
+            tmp.Rs = self.Rs.copy()
+
+        tmp.NoIMFs = self.NoIMFs
+        return tmp
+
+    def __add__(self, other):
+        if type(other) == EMD2D:
+            pass
+        elif type(other) == np.ndarray:
+            pass
+
+
