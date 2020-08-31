@@ -4,6 +4,7 @@ from scipy import interpolate, signal, ndimage
 from tensorflow import image
 from matplotlib.pyplot import imshow
 from PIL import Image
+from EMD2D import EMD2D
 
 
 def Gaussian(img: np.ndarray, w: float, h: float):
@@ -25,6 +26,20 @@ def MitchelCubic(img: np.ndarray, w: float, h: float):
 # img = cv2.imread('DATA/dog.jpg')
 # x1 = Image.fromarray(Gaussian(img, 2, 2))
 # x1.show()
+def Lanczos3(img: np.ndarray, w: float, h: float):
+    new_Shape = [0, 0]
+    new_Shape[0] = int(w * img.shape[0])
+    new_Shape[1] = int(h * img.shape[1])
+
+    return image.resize(img, size=new_Shape, method=image.ResizeMethod.LANCZOS3).numpy().astype(np.uint8)
+
+
+def Lanczos5(img: np.ndarray, w: float, h: float):
+    new_Shape = [0, 0]
+    new_Shape[0] = int(w * img.shape[0])
+    new_Shape[1] = int(h * img.shape[1])
+
+    return image.resize(img, size=new_Shape, method=image.ResizeMethod.LANCZOS5).numpy().astype(np.uint8)
 
 
 def Bilinear(img: np.ndarray, w: float, h: float):
@@ -55,14 +70,15 @@ def RBF(img: np.ndarray, w: float, h: float, function='gaussian'):
     empty: np.ndarray = RescaleAndScatter(img, w, h)
     xx, yy = np.meshgrid(range(img.shape[0]), range(img.shape[1]))
     interp = interpolate.Rbf(xx, yy, img, function=function, smooth=0.001)
-    #XI = np.linspace(0, img.shape[0], int(img.shape[0] * w))
-    #YI = np.linspace(0, img.shape[1], int(img.shape[1] * h))
 
-    #XI, YI = np.meshgrid(XI, YI)
-    #res = interp(XI, YI)
+    # XI = np.linspace(0, img.shape[0], int(img.shape[0] * w))
+    # YI = np.linspace(0, img.shape[1], int(img.shape[1] * h))
 
-    #res = Image.fromarray(res)
-    #res.show()
+    # XI, YI = np.meshgrid(XI, YI)
+    # res = interp(XI, YI)
+
+    # res = Image.fromarray(res)
+    # res.show()
 
 
 def RescaleAndScatter(img: np.ndarray, w: float, h: float) -> np.ndarray:
@@ -106,9 +122,14 @@ def RescaleAndScatter(img: np.ndarray, w: float, h: float) -> np.ndarray:
     # print(img.sum())
 
 
-#image = cv2.imread('DATA/dog.jpg', 0)
-#image = cv2.resize(image, (70, 70), interpolation=cv2.INTER_CUBIC)
+def imreadAndEMD(name: str, grey=0):
+    img = cv2.imread('DATA/' + name, grey)
+
+    return EMD2D(image=img), img
+
+# image = cv2.imread('DATA/dog.jpg', 0)
+# image = cv2.resize(image, (70, 70), interpolation=cv2.INTER_CUBIC)
 # image = Image.fromarray(image)
 # image.show()
 # RescaleAndScatter(image, 3.55, 2.2)
-#RBF(image, 5, 2)
+# RBF(image, 5, 2)
