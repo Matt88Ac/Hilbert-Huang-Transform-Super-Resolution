@@ -5,6 +5,7 @@ from scipy import ndimage, signal
 import scipy.fft as fft
 from MyKernels import Sharpen3x3, LaplacianOfGaussian5x5, Laplace3x3, LaplaceDiag3x3
 from matplotlib import pyplot as plt
+from matplotlib.colors import NoNorm
 
 
 class EMD2D:
@@ -149,13 +150,19 @@ class EMD2D:
 
     def __repr__(self):
         tmp = self.ForShow(median_filter=False)
-        plt.imshow(tmp)
+        if len(self.shape) == 2:
+            plt.imshow(tmp, cmap='gray', norm=NoNorm())
+        else:
+            plt.imshow(tmp)
         plt.show()
         return ""
 
     def __hash__(self):
         tmp = self.reConstruct()
-        plt.imshow(tmp)
+        if len(self.shape) == 2:
+            plt.imshow(tmp, cmap='gray', norm=NoNorm())
+        else:
+            plt.imshow(tmp)
         plt.show()
         return 0
 
