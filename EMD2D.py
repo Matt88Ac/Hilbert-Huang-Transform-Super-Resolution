@@ -2,7 +2,8 @@ import numpy as np
 from pyhht.emd import EmpiricalModeDecomposition as EMD
 import cv2
 from scipy import ndimage, signal
-from MyKernels import Sharpen3x3
+import scipy.fft as fft
+from MyKernels import Sharpen3x3, LaplacianOfGaussian5x5, Laplace3x3, LaplaceDiag3x3
 
 
 class EMD2D:
@@ -143,3 +144,35 @@ class EMD2D:
 
         tmp.NoIMFs = self.NoIMFs
         return tmp
+
+    def applyLoG5x5(self, median_filter=False):
+        dx = self.ForShow(median_filter=median_filter)
+        if len(self.shape) == 2:
+            return signal.convolve2d(dx, LaplacianOfGaussian5x5, mode='same')
+        for i in range(3):
+            dx[:, :, i] = signal.convolve2d(dx[:, :, i], LaplacianOfGaussian5x5, mode='same')
+        return dx
+
+    def applyLaplace3x3(self, median_filter=False):
+        dx = self.ForShow(median_filter=median_filter)
+        if len(self.shape) == 2:
+            return signal.convolve2d(dx, Laplace3x3, mode='same')
+        for i in range(3):
+            dx[:, :, i] = signal.convolve2d(dx[:, :, i], Laplace3x3, mode='same')
+        return dx
+
+    def applyDiagLaplace3x3(self, median_filter=False):
+        dx = self.ForShow(median_filter=median_filter)
+        if len(self.shape) == 2:
+            return signal.convolve2d(dx, LaplaceDiag3x3, mode='same')
+        for i in range(3):
+            dx[:, :, i] = signal.convolve2d(dx[:, :, i], LaplaceDiag3x3, mode='same')
+        return dx
+
+    def applyFFT(self, median_filter=False, as_int=False):
+        dx = self.ForShow(median_filter=median_filter)
+        f1 = fft.fft(dx)
+
+        return f1.real*(1-int(as_int)) + f1.real*int(as_int), f1
+
+
