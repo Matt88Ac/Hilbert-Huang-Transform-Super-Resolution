@@ -103,7 +103,41 @@ class EMD2D:
         return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
                           act(self.Bs).transpose().astype(np.uint8)))
 
-    def Show(self, median_filter=True, sharp=False):
+    @staticmethod
+    def MedianFilterIMF(imf: np.ndarray) -> np.ndarray:
+        return ndimage.median_filter(imf, 3)
+
+    @staticmethod
+    def MedianFilterEach(Channel: np.ndarray) -> np.ndarray:
+        newChannel: np.ndarray = Channel.copy()
+        for i in range(newChannel.shape[0]):
+            newChannel[i] = EMD2D.MedianFilterIMF(newChannel[i])
+        return newChannel
+
+    def MedianFilterAll(self, at_once: bool = True):
+        tmp = EMD2D(False)
+        tmp.shape = self.shape
+        tmp.NoIMFs = self.NoIMFs
+
+        if at_once:
+            if len(self.shape) == 2:
+                tmp.IMFs = ndimage.median_filter(self.IMFs, 3)
+            else:
+                tmp.Gs = ndimage.median_filter(self.Gs, 3)
+                tmp.Rs = ndimage.median_filter(self.Rs, 3)
+                tmp.Bs = ndimage.median_filter(self.Bs, 3)
+
+        else:
+            if len(self.shape) == 2:
+                tmp.IMFs = EMD2D.MedianFilterEach(self.IMFs)
+            else:
+                tmp.Gs = EMD2D.MedianFilterEach(self.Gs)
+                tmp.Rs = EMD2D.MedianFilterEach(self.Rs)
+                tmp.Bs = EMD2D.MedianFilterEach(self.Bs)
+
+        return tmp
+
+    def ForShow(self, median_filter=True, sharp=False):
         if len(self.shape) == 2:
             ret = self.reConstruct()
             if median_filter:
@@ -133,7 +167,8 @@ class EMD2D:
     def __copy__(self):
         tmp = EMD2D(None)
         tmp.shape = self.shape
-        tmp.IMFs = self.IMFs.copy()
+        if not self.Gs:
+            tmp.IMFs = self.IMFs.copy()
 
         if self.Gs:
             tmp.Gs = self.Gs.copy()
@@ -142,7 +177,3 @@ class EMD2D:
 
         tmp.NoIMFs = self.NoIMFs
         return tmp
-
-    
-
-
