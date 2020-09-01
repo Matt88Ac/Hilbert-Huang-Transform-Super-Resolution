@@ -4,6 +4,7 @@ import cv2
 from scipy import ndimage, signal
 import scipy.fft as fft
 from MyKernels import Sharpen3x3, LaplacianOfGaussian5x5, Laplace3x3, LaplaceDiag3x3
+from matplotlib import pyplot as plt
 
 
 class EMD2D:
@@ -18,6 +19,7 @@ class EMD2D:
             return
 
         self.EMD = EMD
+        self.img = image
 
         self.shape = image.shape
 
@@ -145,6 +147,18 @@ class EMD2D:
         tmp.NoIMFs = self.NoIMFs
         return tmp
 
+    def __repr__(self):
+        tmp = self.ForShow(median_filter=False)
+        plt.imshow(tmp)
+        plt.show()
+        return ""
+
+    def __hash__(self):
+        tmp = self.reConstruct()
+        plt.imshow(tmp)
+        plt.show()
+        return 0
+
     def applyLoG5x5(self, median_filter=False):
         dx = self.ForShow(median_filter=median_filter)
         if len(self.shape) == 2:
@@ -173,6 +187,4 @@ class EMD2D:
         dx = self.ForShow(median_filter=median_filter)
         f1 = fft.fft(dx)
 
-        return f1.real*(1-int(as_int)) + f1.real*int(as_int), f1
-
-
+        return f1.real * (1 - int(as_int)) + f1.real * int(as_int), f1
