@@ -143,10 +143,6 @@ class EMD2D:
         tmp.NoIMFs = self.NoIMFs
         return tmp
 
-    def __add__(self, other):
-        if type(other) == EMD2D:
-            pass
-        elif type(other) == np.ndarray:
-            pass
+    
 
 
