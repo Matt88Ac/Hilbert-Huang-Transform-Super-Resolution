@@ -6,6 +6,7 @@ import scipy.fft as fft
 from MyKernels import Sharpen3x3, LaplacianOfGaussian5x5, Laplace3x3, LaplaceDiag3x3
 from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
+from matplotlib import cm
 from PIL.Image import fromarray
 
 
@@ -219,3 +220,37 @@ class EMD2D:
             filtered.set_title('Reconstructed & Median-Filtered picture')
 
         plt.show()
+
+    def surfaces(self, which=0):
+        tmp = self.__getitem__(which)
+        if len(self.shape) == 2:
+            fig = plt.figure(figsize=(20, 20))
+            x0, y0 = tmp.shape
+            x0, y0 = np.meshgrid(x0, y0)
+
+            ax = fig.add_subplot(1, 2, 1, projection='3d')
+            ax.plot_surface(x0, y0, self.img, rstride=1, cstride=1, cmap='red',
+                            linewidth=0, antialiased=False)
+            ax.set_zlim(0, 255)
+
+            ax = fig.add_subplot(1, 2, 2, projection='3d')
+            ax.plot_surface(x0, y0, tmp, rstride=1, cstride=1, cmap='grey',
+                            linewidth=0, antialiased=False)
+            plt.show()
+
+
+        else:
+            fig = plt.figure(figsize=(20, 20))
+            x0, y0 = tmp.shape
+            x0, y0 = np.meshgrid(x0, y0)
+
+            ax = fig.add_subplot(1, 2, 1, projection='3d')
+            ax.plot_surface(x0, y0, tmp[:, :, 0], rstride=1, cstride=1, cmap='red',
+                            linewidth=0, antialiased=False)
+            ax.
+            ax.set_zlim(0, 255)
+
+            ax = fig.add_subplot(1, 2, 2, projection='3d')
+            ax.plot_surface(x0, y0, tmp, rstride=1, cstride=1, cmap='grey',
+                            linewidth=0, antialiased=False)
+            plt.show()
