@@ -6,6 +6,7 @@ import scipy.fft as fft
 from MyKernels import Sharpen3x3, LaplacianOfGaussian5x5, Laplace3x3, LaplaceDiag3x3
 from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
+from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from PIL.Image import fromarray
 
@@ -221,36 +222,39 @@ class EMD2D:
 
         plt.show()
 
-    def surfaces(self, which=0):
-        tmp = self.__getitem__(which)
+    def surfaces(self):
+        return
+        tmp = self.ForShow(median_filter=False)
+        x0, y0 = tmp.shape
+        x0, y0 = np.meshgrid(range(y0), range(x0))
         if len(self.shape) == 2:
             fig = plt.figure(figsize=(20, 20))
-            x0, y0 = tmp.shape
-            x0, y0 = np.meshgrid(x0, y0)
-
-            ax = fig.add_subplot(1, 2, 1, projection='3d')
-            ax.plot_surface(x0, y0, self.img, rstride=1, cstride=1, cmap='red',
-                            linewidth=0, antialiased=False)
+            ax = Axes3D(fig=fig)
+            # ax = plt.axes(projection='3d')
+            ax.plot_surface(x0, y0, self.img - tmp, cmap='viridis')
+            ax.grid()
             ax.set_zlim(0, 255)
-
-            ax = fig.add_subplot(1, 2, 2, projection='3d')
-            ax.plot_surface(x0, y0, tmp, rstride=1, cstride=1, cmap='grey',
-                            linewidth=0, antialiased=False)
+            #ax.plot_wireframe(x0, y0, tmp, color='black')
             plt.show()
+            return ax
 
 
         else:
             fig = plt.figure(figsize=(20, 20))
-            x0, y0 = tmp.shape
-            x0, y0 = np.meshgrid(x0, y0)
-
-            ax = fig.add_subplot(1, 2, 1, projection='3d')
-            ax.plot_surface(x0, y0, tmp[:, :, 0], rstride=1, cstride=1, cmap='red',
-                            linewidth=0, antialiased=False)
-            ax.
+            ax = Axes3D(fig=fig)
+            ax.plot_surface(x0, y0, self.img[:, :, 0], color='red')
+            ax.grid()
             ax.set_zlim(0, 255)
+            ax.plot_surface(x0, y0, tmp[:, :, 0], color='black')
 
             ax = fig.add_subplot(1, 2, 2, projection='3d')
-            ax.plot_surface(x0, y0, tmp, rstride=1, cstride=1, cmap='grey',
-                            linewidth=0, antialiased=False)
+            ax.plot_surface(x0, y0, self.img[:, :, 1], color='green')
+            ax.grid()
+            ax.set_zlim(0, 255)
+            ax.plot_surface(x0, y0, tmp[:, :, 1], color='black')
+            ax = fig.add_subplot(1, 2, 3, projection='3d')
+            ax.plot_surface(x0, y0, self.img[:, :, 2], color='blue')
+            ax.grid()
+            ax.set_zlim(0, 255)
+            ax.plot_surface(x0, y0, tmp[:, :, 2], color='black')
             plt.show()
