@@ -6,6 +6,7 @@ import scipy.fft as fft
 from MyKernels import Sharpen3x3, LaplacianOfGaussian5x5, Laplace3x3, LaplaceDiag3x3
 from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
+from PIL.Image import fromarray
 
 
 class EMD2D:
@@ -194,4 +195,27 @@ class EMD2D:
         dx = self.ForShow(median_filter=median_filter)
         f1 = fft.fft(dx)
 
-        return f1.real * (1 - int(as_int)) + f1.real * int(as_int), f1
+        return f1.real * (1 - int(as_int)) + f1.real.astype(np.uint8) * int(as_int), f1
+
+    def compare(self):
+        if len(self.shape) == 2:
+            fig, (origin, decomp, filtered) = plt.subplots(3, 1, figsize=(20, 20))
+            fig.suptitle('All picture forms')
+            origin.imshow(self.img, cmap='gray', norm=NoNorm())
+            origin.set_title('Original')
+            decomp.imshow(self.ForShow(False), cmap='gray', norm=NoNorm())
+            decomp.set_title('Reconstructed picture')
+            filtered.imshow(self.ForShow(), cmap='gray', norm=NoNorm())
+            filtered.set_title('Reconstructed & Median-Filtered picture')
+
+        else:
+            fig, (origin, decomp, filtered) = plt.subplots(1, 3)
+            fig.suptitle('All picture forms')
+            origin.imshow(cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB))
+            origin.set_title('Original')
+            decomp.imshow(self.ForShow(False))
+            decomp.set_title('Reconstructed picture')
+            filtered.imshow(self.ForShow())
+            filtered.set_title('Reconstructed & Median-Filtered picture')
+
+        plt.show()
