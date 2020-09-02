@@ -209,7 +209,7 @@ class EMD2D:
             filtered.set_title('Reconstructed & Median-Filtered picture')
 
         else:
-            fig, (origin, decomp, filtered) = plt.subplots(1, 3)
+            fig, (origin, decomp, filtered) = plt.subplots(3, 1, figsize=(20, 20))
             fig.suptitle('All picture forms')
             origin.imshow(cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB))
             origin.set_title('Original')

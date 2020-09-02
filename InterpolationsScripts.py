@@ -5,6 +5,7 @@ import numpy as np
 import platform
 from itertools import combinations_with_replacement
 
+
 class newRun:
     def __init__(self, fname, colored=0):
         self.dir = None
@@ -39,4 +40,3 @@ class newRun:
     def getPermutations(cls, decomposed: EMD2D):
         n = len(decomposed)
         return list(combinations_with_replacement(def_interpolations, n))
-
