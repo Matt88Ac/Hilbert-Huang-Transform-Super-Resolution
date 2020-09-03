@@ -223,38 +223,53 @@ class EMD2D:
         plt.show()
 
     def surfaces(self):
-        return
-        tmp = self.ForShow(median_filter=False)
-        x0, y0 = tmp.shape
+        x0, y0 = self.shape
         x0, y0 = np.meshgrid(range(y0), range(x0))
-        if len(self.shape) == 2:
-            fig = plt.figure(figsize=(20, 20))
-            ax = Axes3D(fig=fig)
-            # ax = plt.axes(projection='3d')
-            ax.plot_surface(x0, y0, self.img - tmp, cmap='viridis')
-            ax.grid()
-            ax.set_zlim(0, 255)
-            #ax.plot_wireframe(x0, y0, tmp, color='black')
-            plt.show()
-            return ax
 
+        if len(self.shape) == 2:
+            n = self.NoIMFs
+            fig, plots = plt.subplots(nrows=n, ncols=1, figsize=(20, 20))
+
+            for i in range(n):
+                plots[i] = plt.axes(projection='3d')
+                if i == n - 1:
+                    plots[i].set_title('Residue')
+                else:
+                    plots[i].set_title('IMF ' + str(i + 1))
+                plots[i].plot_surface(x0, y0, self.__getitem__(i), cmap='binary', norm=NoNorm())
+                plots[i].grid()
+
+            plt.show()
 
         else:
-            fig = plt.figure(figsize=(20, 20))
-            ax = Axes3D(fig=fig)
-            ax.plot_surface(x0, y0, self.img[:, :, 0], color='red')
-            ax.grid()
-            ax.set_zlim(0, 255)
-            ax.plot_surface(x0, y0, tmp[:, :, 0], color='black')
+            n = max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0])
+            fig, plots = plt.subplots(nrows=n, ncols=3, figsize=(20, 20))
 
-            ax = fig.add_subplot(1, 2, 2, projection='3d')
-            ax.plot_surface(x0, y0, self.img[:, :, 1], color='green')
-            ax.grid()
-            ax.set_zlim(0, 255)
-            ax.plot_surface(x0, y0, tmp[:, :, 1], color='black')
-            ax = fig.add_subplot(1, 2, 3, projection='3d')
-            ax.plot_surface(x0, y0, self.img[:, :, 2], color='blue')
-            ax.grid()
-            ax.set_zlim(0, 255)
-            ax.plot_surface(x0, y0, tmp[:, :, 2], color='black')
+            for i in range(n):
+                plots[i, 0] = plots[i, 1] = plots[i, 2] = plt.axes(projection='3d')
+                if i == n - 1:
+                    plots[i][0].set_title('Red Residue')
+                    plots[i][1].set_title('Green Residue')
+                    plots[i][2].set_title('Blue Residue')
+
+                else:
+                    plots[i][0].set_title('Red IMF ' + str(i + 1))
+                    plots[i][1].set_title('Green IMF ' + str(i + 1))
+                    plots[i][2].set_title('Blue IMF ' + str(i + 1))
+
+                surf = self.__getitem__(i)
+
+                plots[i][0].plot_surface(x0, y0, surf[:, :, 0], cmap='binary', norm=NoNorm())
+                plots[i][0].grid()
+
+                plots[i][1].plot_surface(x0, y0, surf[:, :, 1], cmap='binary', norm=NoNorm())
+                plots[i][1].grid()
+
+                plots[i][2].plot_surface(x0, y0, surf[:, :, 2], cmap='binary', norm=NoNorm())
+                plots[i][2].grid()
             plt.show()
+
+
+img = cv2.imread('DATA/dog.jpg', 0)
+dec = EMD2D(img)
+dec.surfaces()
