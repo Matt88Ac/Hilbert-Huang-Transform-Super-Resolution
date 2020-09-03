@@ -12,11 +12,11 @@ from PIL.Image import fromarray
 
 
 class EMD2D:
-    IMFs: np.ndarray = np.array([])
     Rs = None
     Gs = None
     Bs = None
     NoIMFs: int = 0
+    IMFs = []
 
     def __init__(self, image: np.ndarray):
         if image is None:
@@ -27,47 +27,57 @@ class EMD2D:
 
         self.shape = image.shape
 
-        def emd_images_col(colOfImage: np.ndarray):
+        def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
             return self.EMD(colOfImage).decompose()
 
-        def concatZeros(row: np.ndarray, howMuch: int, bo) -> np.ndarray:
-            if len(row.shape) == 1:
-                return np.vstack((row, np.zeros((howMuch, row.shape[0]))))
-            return np.vstack((row, np.zeros((howMuch, row.shape[1]))))
-
-        def checkZeroPad(imfs: np.ndarray):
-            return self.NoIMFs - imfs.shape[0]
-
         def AddDecomposed(newIMF: np.ndarray):
-            newArr = np.array([np.vstack((self.IMFs[0], newIMF[0]))])
-            n = checkZeroPad(newIMF)
-            for i in range(1, min(self.NoIMFs, newIMF.shape[0])):
-                newArr = np.vstack((newArr, np.array([np.vstack((self.IMFs[i], newIMF[i]))])))
-            if n == 0:
-                self.IMFs = newArr.copy()
-                return
-            elif n < 0:
-                for i in range(self.NoIMFs, newIMF.shape[0]):
-                    toAdd = newArr[0].shape[0] - 1
-                    ta = np.array([concatZeros(newIMF[i], toAdd, False)])
-                    newArr = np.vstack((newArr, ta))
-                self.IMFs = newArr.copy()
-                self.NoIMFs = newIMF.shape[0]
+            # newArr: np.ndarray = np.vstack((self.IMFs[0], newIMF[0]))
+            ln = min(self.NoIMFs, newIMF.shape[0])
+            k = 0
+            for i in range(ln):
+                self.IMFs[i] = np.vstack((self.IMFs[i], newIMF[i]))
+                k += 1
+
+            if self.NoIMFs == newIMF.shape[0]:
                 return
 
-            for i in range(newIMF.shape[0], self.NoIMFs):
-                ta = np.array([concatZeros(self.IMFs[i], 1, True)])
-                newArr = np.vstack((newArr, ta))
-            self.IMFs = newArr.copy()
+            elif ln == newIMF.shape[0]:
+                return
 
-        def Run(img: np.ndarray) -> np.ndarray:
+            for i in range(k, newIMF.shape[0]):
+                self.IMFs.append(newIMF[i].copy())
+
+            self.NoIMFs = newIMF.shape[0]
+
+        def Run(img: np.ndarray):
             deco = emd_images_col(img[:, 0])
             self.NoIMFs = deco.shape[0]
-            self.IMFs = deco.copy()
+
+            for i in range(len(deco)):
+                self.IMFs.append(deco[i])
 
             for i in range(1, img.shape[1]):
                 deco = emd_images_col(img[:, i])
                 AddDecomposed(deco.copy())
+
+            maxim = self.shape[1]
+            newArr = np.empty((self.NoIMFs, self.shape[1], self.shape[0]))
+            print(newArr.shape)
+            print(self.IMFs[0].shape)
+
+            for i in range(len(self.IMFs)):
+                howMuch = maxim - self.IMFs[i].shape[0]
+                if len(self.IMFs[i].shape) == 1:
+                    continue
+
+                if howMuch == 0:
+                    newArr[i] = self.IMFs[i].copy()
+                    continue
+
+                concat = np.zeros((howMuch, self.shape[0]))
+                newArr[i] = np.vstack((self.IMFs[i], concat))
+
+            self.IMFs = newArr.copy()
             return self.IMFs.copy()
 
         if len(image.shape) == 3:
@@ -234,7 +244,7 @@ class EMD2D:
             ax.plot_surface(x0, y0, self.img - tmp, cmap='viridis')
             ax.grid()
             ax.set_zlim(0, 255)
-            #ax.plot_wireframe(x0, y0, tmp, color='black')
+            # ax.plot_wireframe(x0, y0, tmp, color='black')
             plt.show()
             return ax
 
@@ -258,3 +268,9 @@ class EMD2D:
             ax.set_zlim(0, 255)
             ax.plot_surface(x0, y0, tmp[:, :, 2], color='black')
             plt.show()
+
+
+img = cv2.imread('DATA/dog.jpg', 0)
+dec = EMD2D(img)
+x1 = fromarray(dec.ForShow(False))
+x1.show()
