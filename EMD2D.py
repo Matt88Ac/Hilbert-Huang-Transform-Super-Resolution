@@ -160,6 +160,18 @@ class EMD2D:
         plt.show()
         return ""
 
+    def __cmp__(self, other):
+        if other.shape != self.shape:
+            print("Couldn't compare")
+            return False
+
+        x1 = self.ForShow(False)
+        if type(other) == np.ndarray:
+            return x1 == other
+
+        x2 = other.ForShow(False)
+        return x1 == x2
+
     def applyLoG5x5(self, median_filter=False):
         dx = self.ForShow(median_filter=median_filter)
         if len(self.shape) == 2:
@@ -198,8 +210,8 @@ class EMD2D:
             origin.set_title('Original')
             decomp.imshow(self.ForShow(False), cmap='gray', norm=NoNorm())
             decomp.set_title('Reconstructed picture')
-            #filtered.imshow(self.ForShow(), cmap='gray', norm=NoNorm())
-            #filtered.set_title('Reconstructed & Median-Filtered picture')
+            # filtered.imshow(self.ForShow(), cmap='gray', norm=NoNorm())
+            # filtered.set_title('Reconstructed & Median-Filtered picture')
 
         else:
             fig, (origin, decomp, filtered) = plt.subplots(3, 1, figsize=(20, 20))
@@ -208,8 +220,8 @@ class EMD2D:
             origin.set_title('Original')
             decomp.imshow(self.ForShow(False))
             decomp.set_title('Reconstructed picture')
-            #filtered.imshow(self.ForShow())
-            #filtered.set_title('Reconstructed & Median-Filtered picture')
+            # filtered.imshow(self.ForShow())
+            # filtered.set_title('Reconstructed & Median-Filtered picture')
 
         plt.show()
 
@@ -259,4 +271,3 @@ class EMD2D:
                 plots[i][2].plot_surface(x0, y0, surf[:, :, 2], cmap='binary', norm=NoNorm())
                 plots[i][2].grid()
             plt.show()
-
