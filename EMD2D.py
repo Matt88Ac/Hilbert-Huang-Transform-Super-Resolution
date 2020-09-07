@@ -270,6 +270,6 @@ class EMD2D:
             plt.show()
 
 
-img = cv2.imread('DATA/dog.jpg', 0)
-dec = EMD2D(img)
-dec.surfaces()
+#img = cv2.imread('DATA/dog.jpg', 0)
+#dec = EMD2D(img)
+#dec.surfaces()
