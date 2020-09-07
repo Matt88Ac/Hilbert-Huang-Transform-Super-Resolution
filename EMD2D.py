@@ -160,15 +160,6 @@ class EMD2D:
         plt.show()
         return ""
 
-    def __hash__(self):
-        tmp = self.reConstruct()
-        if len(self.shape) == 2:
-            plt.imshow(tmp, cmap='gray', norm=NoNorm())
-        else:
-            plt.imshow(tmp)
-        plt.show()
-        return 0
-
     def applyLoG5x5(self, median_filter=False):
         dx = self.ForShow(median_filter=median_filter)
         if len(self.shape) == 2:
@@ -217,8 +208,8 @@ class EMD2D:
             origin.set_title('Original')
             decomp.imshow(self.ForShow(False))
             decomp.set_title('Reconstructed picture')
-            filtered.imshow(self.ForShow())
-            filtered.set_title('Reconstructed & Median-Filtered picture')
+            #filtered.imshow(self.ForShow())
+            #filtered.set_title('Reconstructed & Median-Filtered picture')
 
         plt.show()
 
@@ -269,7 +260,3 @@ class EMD2D:
                 plots[i][2].grid()
             plt.show()
 
-
-#img = cv2.imread('DATA/dog.jpg', 0)
-#dec = EMD2D(img)
-#dec.surfaces()
