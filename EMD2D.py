@@ -198,8 +198,8 @@ class EMD2D:
             origin.set_title('Original')
             decomp.imshow(self.ForShow(False), cmap='gray', norm=NoNorm())
             decomp.set_title('Reconstructed picture')
-            filtered.imshow(self.ForShow(), cmap='gray', norm=NoNorm())
-            filtered.set_title('Reconstructed & Median-Filtered picture')
+            #filtered.imshow(self.ForShow(), cmap='gray', norm=NoNorm())
+            #filtered.set_title('Reconstructed & Median-Filtered picture')
 
         else:
             fig, (origin, decomp, filtered) = plt.subplots(3, 1, figsize=(20, 20))
