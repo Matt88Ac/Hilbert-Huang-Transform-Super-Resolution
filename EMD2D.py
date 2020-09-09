@@ -247,6 +247,9 @@ class EMD2D:
         x2 = other.ForShow(False)
         return x1 == x2
 
+    def applyFilter(self, **kwargs):
+        pass
+
     def applyLoG5x5(self, median_filter=False):
         dx = self.ForShow(median_filter=median_filter)
         if len(self.shape) == 2:
