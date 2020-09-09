@@ -277,10 +277,10 @@ class EMD2D:
 
         if sharp:
             if len(temp.shape) == 2:
-                return signal.convolve2d(temp, Sharpen3x3)
-            temp[:, :, 0] = signal.convolve2d(temp[:, :, 0], Sharpen3x3)
-            temp[:, :, 1] = signal.convolve2d(temp[:, :, 1], Sharpen3x3)
-            temp[:, :, 2] = signal.convolve2d(temp[:, :, 2], Sharpen3x3)
+                return signal.convolve2d(temp, Sharpen3x3, mode='same')
+            temp[:, :, 0] = signal.convolve2d(temp[:, :, 0], Sharpen3x3, mode='same')
+            temp[:, :, 1] = signal.convolve2d(temp[:, :, 1], Sharpen3x3, mode='same')
+            temp[:, :, 2] = signal.convolve2d(temp[:, :, 2], Sharpen3x3, mode='same')
 
         return temp
 
@@ -292,7 +292,7 @@ class EMD2D:
 
     def compare(self):
         if len(self.shape) == 2:
-            fig, (origin, decomp, filtered) = plt.subplots(3, 1, figsize=(20, 20))
+            fig, (origin, decomp) = plt.subplots(2, 1, figsize=(20, 20))
             fig.suptitle('All picture forms')
             origin.imshow(self.img, cmap='gray', norm=NoNorm())
             origin.set_title('Original')
@@ -302,7 +302,7 @@ class EMD2D:
             # filtered.set_title('Reconstructed & Median-Filtered picture')
 
         else:
-            fig, (origin, decomp, filtered) = plt.subplots(3, 1, figsize=(20, 20))
+            fig, (origin, decomp) = plt.subplots(2, 1, figsize=(20, 20))
             fig.suptitle('All picture forms')
             origin.imshow(cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB))
             origin.set_title('Original')
