@@ -4,6 +4,7 @@
       <w>bicubic</w>
       <w>bilinear</w>
       <w>dirc</w>
+      <w>dtype</w>
       <w>imfs</w>
       <w>lanczos</w>
       <w>ndarray</w>

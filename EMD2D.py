@@ -81,24 +81,90 @@ class EMD2D:
         else:
             Run(image)
 
+    def __call(self, imf, dtype=None) -> np.ndarray:
+        if type(imf) == slice:
+            start = imf.start
+            if start is None:
+                start = 0
+            elif start < 0:
+                start = 0
+            elif start >= self.__len__():
+                print("Slice unavailable - start problem")
+                start = self.__len__() - 2
+
+            stop = imf.stop
+            if stop is None:
+                stop = self.__len__()
+
+            elif stop <= start:
+                stop = start + 1
+
+            elif stop >= self.__len__():
+                stop = self.__len__()
+
+            caller = list(range(start, stop))
+            if len(self.shape) == 2:
+                tmp = np.empty((len(caller), self.shape[0], self.shape[1]))
+            else:
+                tmp = np.empty((len(caller), self.shape[0], self.shape[1], self.shape[2]))
+            ln = 0
+            for i in caller:
+                tmp[ln] = self.__call(i)
+                ln += 1
+            return tmp
+
+        else:
+            if len(self.shape) == 2:
+                if imf < self.IMFs.shape[0]:
+                    if dtype is None:
+                        return self.IMFs[imf].transpose()
+                    return self.IMFs[imf].transpose().astype(np.uint8)
+                return np.zeros(self.shape).astype(np.uint8)
+
+            if dtype == None:
+                part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]))
+            else:
+                part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]), dtype=np.uint8)
+
+            x1 = dtype is None
+            if imf < self.Rs.shape[0]:
+                part1 = self.Rs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + \
+                        x1 * self.Rs[imf, :, :].transpose()
+
+            if imf < self.Gs.shape[0]:
+                part2 = self.Gs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + \
+                        x1 * self.Gs[imf, :, :].transpose()
+
+            if imf < self.Bs.shape[0]:
+                part3 = self.Bs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + x1 * self.Bs[imf, :, :].transpose()
+
+            return cv2.merge((part1, part2, part3))
+
+    def __call__(self, imf) -> np.ndarray:
+        if type(imf) == slice:
+            pass
+
     def __getitem__(self, imf):
-        if len(self.shape) == 2:
-            if imf < self.IMFs.shape[0]:
-                return self.IMFs[imf].transpose().astype(np.uint8)
-            return np.zeros(self.shape).astype(np.uint8)
+        if type(imf) == slice:
+            tmp = self.__call(imf=imf)
+            return tmp
+        keys = list(imf)
+        tmp = self.__call(imf=keys[0])
 
-        part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]), dtype=np.uint8)
+        len2 = len(self.shape) == 2
 
-        if imf < self.Rs.shape[0]:
-            part1 = self.Rs[imf, :, :].transpose().astype(np.uint8)
+        keys = keys[1:]
+        if len2:
+            while len(keys) != 2:
+                keys.append(slice(None, None))
 
-        if imf < self.Gs.shape[0]:
-            part2 = self.Gs[imf, :, :].transpose().astype(np.uint8)
+            return tmp[:, keys[0], keys[1]]
 
-        if imf < self.Bs.shape[0]:
-            part3 = self.Bs[imf, :, :].transpose().astype(np.uint8)
+        else:
+            while len(keys) != 3:
+                keys.append(slice(None, None))
 
-        return cv2.merge((part1, part2, part3))
+            return tmp[:, keys[0], keys[1], keys[2]]
 
     def reConstruct(self):
         def act(Imfs: np.ndarray, axis=0):
@@ -110,7 +176,7 @@ class EMD2D:
         return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
                           act(self.Bs).transpose().astype(np.uint8)))
 
-    def ForShow(self, median_filter=True, sharp=False):
+    def ForShow(self, median_filter=False, sharp=False):
         if len(self.shape) == 2:
             ret = self.reConstruct()
             if median_filter:
@@ -271,3 +337,6 @@ class EMD2D:
                 plots[i][2].plot_surface(x0, y0, surf[:, :, 2], cmap='binary', norm=NoNorm())
                 plots[i][2].grid()
             plt.show()
+
+    def copy(self):
+        return self.__copy__()
