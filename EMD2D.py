@@ -18,12 +18,14 @@ class EMD2D:
     Bs = None
     NoIMFs: int = 0
 
-    def __init__(self, image: np.ndarray):
+    def __init__(self, image: np.ndarray, save=False):
         if image is None:
             return
 
         self.EMD = EMD
-        self.img = image
+        self.img = None
+        if save:
+            self.img = image
 
         self.shape = image.shape
 
