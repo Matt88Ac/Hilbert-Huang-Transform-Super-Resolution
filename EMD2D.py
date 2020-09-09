@@ -194,10 +194,6 @@ class EMD2D:
             ret = self.reConstruct()
             if median_filter:
                 ret = ndimage.median_filter(ret, 3)
-
-            if sharp:
-                ret = signal.convolve2d(ret, Sharpen3x3, mode='same')
-
             return ret
 
         ret = cv2.cvtColor(self.reConstruct(), cv2.COLOR_BGR2RGB)
