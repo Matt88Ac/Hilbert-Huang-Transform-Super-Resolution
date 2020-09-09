@@ -3,7 +3,6 @@ from pyhht.emd import EmpiricalModeDecomposition as EMD
 import cv2
 from scipy import ndimage, signal
 import scipy.fft as fft
-from MyKernels import Sharpen3x3, LaplacianOfGaussian5x5, Laplace3x3, LaplaceDiag3x3
 from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
 from mpl_toolkits.mplot3d import Axes3D
@@ -11,6 +10,11 @@ from matplotlib import cm
 from PIL.Image import fromarray
 from datetime import datetime
 import os
+
+Sharpen3x3 = np.array([[0, -1, 0],
+                       [-1, 5, -1],
+                       [0, -1, 0]])
+Sharpen3x3 = Sharpen3x3.reshape((3, 3))
 
 
 class EMD2D:
@@ -248,36 +252,42 @@ class EMD2D:
         return x1 == x2
 
     def applyFilter(self, **kwargs):
-        pass
+        temp = self.ForShow()
+        keys = list(kwargs.keys())
 
-    def applyLoG5x5(self, median_filter=False):
-        dx = self.ForShow(median_filter=median_filter)
-        if len(self.shape) == 2:
-            return signal.convolve2d(dx, LaplacianOfGaussian5x5, mode='same')
-        for i in range(3):
-            dx[:, :, i] = signal.convolve2d(dx[:, :, i], LaplacianOfGaussian5x5, mode='same')
-        return dx
+        gaussian = 'gaussian' in keys
+        sigma = 'sigma' in keys
+        LoG = 'LoG' in keys
+        sobel = 'sobel' in keys
+        prewitt = 'prewitt' in keys
+        laplace = 'laplace' in keys
+        sharp = 'sharpen' in keys
 
-    def applyLaplace3x3(self, median_filter=False):
-        dx = self.ForShow(median_filter=median_filter)
-        if len(self.shape) == 2:
-            return signal.convolve2d(dx, Laplace3x3, mode='same')
-        for i in range(3):
-            dx[:, :, i] = signal.convolve2d(dx[:, :, i], Laplace3x3, mode='same')
-        return dx
+        if not sigma:
+            sigma = 0.1
+        if gaussian:
+            temp = ndimage.gaussian_filter(temp, sigma)
 
-    def applyDiagLaplace3x3(self, median_filter=False):
-        dx = self.ForShow(median_filter=median_filter)
-        if len(self.shape) == 2:
-            return signal.convolve2d(dx, LaplaceDiag3x3, mode='same')
-        for i in range(3):
-            dx[:, :, i] = signal.convolve2d(dx[:, :, i], LaplaceDiag3x3, mode='same')
-        return dx
+        if laplace:
+            temp = ndimage.laplace(temp)
 
-    def applyGaussian(self, sigma=0.1, median_filter=False):
-        dx = self.ForShow(median_filter=median_filter)
-        dx = ndimage.gaussian_filter(dx, sigma)
-        return dx
+        if LoG:
+            temp = ndimage.gaussian_laplace(temp, sigma)
+
+        if sobel:
+            temp = ndimage.sobel(temp)
+
+        if prewitt:
+            temp = ndimage.prewitt(temp)
+
+        if sharp:
+            if len(temp.shape) == 2:
+                return signal.convolve2d(temp, Sharpen3x3)
+            temp[:, :, 0] = signal.convolve2d(temp[:, :, 0], Sharpen3x3)
+            temp[:, :, 1] = signal.convolve2d(temp[:, :, 1], Sharpen3x3)
+            temp[:, :, 2] = signal.convolve2d(temp[:, :, 2], Sharpen3x3)
+
+        return temp
 
     def applyFFT(self, median_filter=False, as_int=False):
         dx = self.ForShow(median_filter=median_filter)
@@ -368,7 +378,7 @@ class EMD2D:
         if with_imfs:
             for i in range(self.__len__()):
                 tmp1 = self.__getitem__(i)
-                cv2.imwrite(curdir + 'IMF_' + str(i+1) + '.jpg', tmp1)
+                cv2.imwrite(curdir + 'IMF_' + str(i + 1) + '.jpg', tmp1)
 
         try:
             cv2.imwrite(curdir + 'Original.jpg', tmp)
@@ -376,3 +386,7 @@ class EMD2D:
             print("Can't save")
             return False
         return True
+
+    def show(self):
+        x0 = fromarray(self.ForShow())
+        x0.show()
