@@ -271,6 +271,11 @@ class EMD2D:
             dx[:, :, i] = signal.convolve2d(dx[:, :, i], LaplaceDiag3x3, mode='same')
         return dx
 
+    def applyGaussian(self, sigma=0.1, median_filter=False):
+        dx = self.ForShow(median_filter=median_filter)
+        dx = ndimage.gaussian_filter(dx, sigma)
+        return dx
+
     def applyFFT(self, median_filter=False, as_int=False):
         dx = self.ForShow(median_filter=median_filter)
         f1 = fft.fft(dx)
