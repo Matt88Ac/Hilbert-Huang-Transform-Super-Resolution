@@ -9,6 +9,8 @@ from matplotlib.colors import NoNorm
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from PIL.Image import fromarray
+from datetime import datetime
+import os
 
 
 class EMD2D:
@@ -150,6 +152,11 @@ class EMD2D:
         if type(imf) == slice:
             tmp = self.__call(imf=imf)
             return tmp
+
+        elif type(imf) == int:
+            tmp = self.__call(imf=imf)
+            return tmp
+
         keys = list(imf)
         tmp = self.__call(imf=keys[0])
 
@@ -342,3 +349,22 @@ class EMD2D:
 
     def copy(self):
         return self.__copy()
+
+    def save(self, with_imfs=True):
+        tmp = self.reConstruct()
+        now = datetime.now()
+        curdir = os.getcwd()
+        curdir = curdir.replace(curdir[2], '/') + '/Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S")
+        os.mkdir(curdir)
+        curdir = 'Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S") + '/'
+        if with_imfs:
+            for i in range(self.__len__()):
+                tmp1 = self.__getitem__(i)
+                cv2.imwrite(curdir + 'IMF_' + str(i+1) + '.jpg', tmp1)
+
+        try:
+            cv2.imwrite(curdir + 'Original.jpg', tmp)
+        except Exception:
+            print("Can't save")
+            return False
+        return True
