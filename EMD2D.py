@@ -203,7 +203,7 @@ class EMD2D:
             return self.IMFs.shape[0]
         return max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0])
 
-    def __copy__(self):
+    def __copy(self):
         tmp = EMD2D(image=None)
         tmp.shape = self.shape
         if not self.Gs:
@@ -339,4 +339,4 @@ class EMD2D:
             plt.show()
 
     def copy(self):
-        return self.__copy__()
+        return self.__copy()
