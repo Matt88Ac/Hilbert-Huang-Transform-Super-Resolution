@@ -189,7 +189,7 @@ class EMD2D:
         return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
                           act(self.Bs).transpose().astype(np.uint8)))
 
-    def ForShow(self, median_filter=False, sharp=False):
+    def ForShow(self, median_filter=False):
         if len(self.shape) == 2:
             ret = self.reConstruct()
             if median_filter:
@@ -203,11 +203,6 @@ class EMD2D:
         ret = cv2.cvtColor(self.reConstruct(), cv2.COLOR_BGR2RGB)
         if median_filter:
             ret = ndimage.median_filter(ret, 3)
-
-        if sharp:
-            ret[:, :, 0] = signal.convolve2d(ret[:, :, 0], Sharpen3x3, mode='same')
-            ret[:, :, 1] = signal.convolve2d(ret[:, :, 1], Sharpen3x3, mode='same')
-            ret[:, :, 2] = signal.convolve2d(ret[:, :, 2], Sharpen3x3, mode='same')
 
         return ret
 
@@ -262,6 +257,7 @@ class EMD2D:
         prewitt = 'prewitt' in keys
         laplace = 'laplace' in keys
         sharp = 'sharpen' in keys
+        median = 'median' in keys
 
         if not sigma:
             sigma = 0.1
@@ -273,6 +269,9 @@ class EMD2D:
 
         if LoG:
             temp = ndimage.gaussian_laplace(temp, sigma)
+
+        if median:
+            temp = ndimage.median_filter(temp, 3)
 
         if sobel:
             temp = ndimage.sobel(temp)
