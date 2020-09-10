@@ -313,53 +313,6 @@ class EMD2D:
 
         plt.show()
 
-    def surfaces(self):
-        x0, y0 = self.shape
-        x0, y0 = np.meshgrid(range(y0), range(x0))
-
-        if len(self.shape) == 2:
-            n = self.NoIMFs
-            fig, plots = plt.subplots(nrows=n, ncols=1, figsize=(20, 20))
-
-            for i in range(n):
-                plots[i] = plt.axes(projection='3d')
-                if i == n - 1:
-                    plots[i].set_title('Residue')
-                else:
-                    plots[i].set_title('IMF ' + str(i + 1))
-                plots[i].plot_surface(x0, y0, self.__getitem__(i), cmap='binary', norm=NoNorm())
-                plots[i].grid()
-
-            plt.show()
-
-        else:
-            n = max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0])
-            fig, plots = plt.subplots(nrows=n, ncols=3, figsize=(20, 20))
-
-            for i in range(n):
-                plots[i, 0] = plots[i, 1] = plots[i, 2] = plt.axes(projection='3d')
-                if i == n - 1:
-                    plots[i][0].set_title('Red Residue')
-                    plots[i][1].set_title('Green Residue')
-                    plots[i][2].set_title('Blue Residue')
-
-                else:
-                    plots[i][0].set_title('Red IMF ' + str(i + 1))
-                    plots[i][1].set_title('Green IMF ' + str(i + 1))
-                    plots[i][2].set_title('Blue IMF ' + str(i + 1))
-
-                surf = self.__getitem__(i)
-
-                plots[i][0].plot_surface(x0, y0, surf[:, :, 0], cmap='binary', norm=NoNorm())
-                plots[i][0].grid()
-
-                plots[i][1].plot_surface(x0, y0, surf[:, :, 1], cmap='binary', norm=NoNorm())
-                plots[i][1].grid()
-
-                plots[i][2].plot_surface(x0, y0, surf[:, :, 2], cmap='binary', norm=NoNorm())
-                plots[i][2].grid()
-            plt.show()
-
     def copy(self):
         return self.__copy()
 
