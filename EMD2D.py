@@ -312,7 +312,7 @@ class EMD2D:
             # filtered.set_title('Reconstructed & Median-Filtered picture')
 
         plt.show()
-
+    
     def surfaces(self):
         x0, y0 = self.shape
         x0, y0 = np.meshgrid(range(y0), range(x0))
