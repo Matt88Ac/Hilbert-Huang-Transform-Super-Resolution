@@ -24,7 +24,7 @@ class EMD2D:
     Bs = None
     NoIMFs: int = 0
 
-    def __init__(self, image: np.ndarray, save=False):
+    def __init__(self, image: np.ndarray, save=True):
         if image is None:
             return
 
