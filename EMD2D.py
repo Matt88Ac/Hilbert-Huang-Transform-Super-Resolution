@@ -248,7 +248,7 @@ class EMD2D:
             print("Couldn't compare")
             return False
 
-        x1 = self.ForShow(False)
+        x1 = self.reConstruct()
         if type(other) == np.ndarray:
             return x1 == other
 
