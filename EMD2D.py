@@ -39,21 +39,19 @@ class EMD2D:
         self.stdFrequency = self.MeanFrequency.copy()
 
         def Run(img: np.ndarray, n=0):
-
+            
             def emd_images_col(colOfImage: np.ndarray):
                 return self.EMD(colOfImage).decompose()
 
-            def concatZeros(row: np.ndarray, howMuch: int) -> np.ndarray:
-                if len(row.shape) == 1:
-                    return np.vstack((row, np.zeros((howMuch, row.shape[0]))))
-                return np.vstack((row, np.zeros((howMuch, row.shape[1]))))
-
             def fftMyIMF(imf: np.ndarray) -> np.ndarray:
-                return fft.fft(imf).real
+                return np.fft.fft(imf).real
 
             def decAndFFT(colOfImage: np.ndarray):
                 decCol = emd_images_col(colOfImage)
                 dft = fftMyIMF(decCol)
+
+                mn = self.MeanFrequency.mean()
+
 
                 if len(self.MeanFrequency.shape) == 1:
                     self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
@@ -62,6 +60,8 @@ class EMD2D:
                 else:
                     self.MeanFrequency[n] = np.append(self.MeanFrequency[n], dft.mean(axis=1))
                     self.stdFrequency[n] = np.append(self.stdFrequency[n], dft.std(axis=1))
+
+
 
 
 
