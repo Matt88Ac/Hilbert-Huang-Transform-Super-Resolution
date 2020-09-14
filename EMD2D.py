@@ -35,6 +35,8 @@ class EMD2D:
             self.img = image.copy()
         self.shape = self.img.shape
 
+        self.iter = 0
+
         def emd_images_col(colOfImage: np.ndarray):
             return self.EMD(colOfImage).decompose()
 
@@ -260,6 +262,37 @@ class EMD2D:
 
         x2 = other1.ForShow(False)
         return x1 == x2
+
+    def __pow__(self, power, modulo=None):
+        pass
+
+    def __add__(self, other):
+        pass
+
+    def __sub__(self, other):
+        pass
+
+    def __rsub__(self, other):
+        pass
+
+    def __radd__(self, other):
+        pass
+
+    def __mul__(self, other):
+        pass
+
+    def __rdiv__(self, other):
+        pass
+
+    def __iter__(self):
+        if self.iter >= len(self):
+            self.iter = 0
+
+        while self.iter < len(self):
+            self.iter += 1
+            yield self[self.iter - 1]
+
+        self.iter = 0
 
     def applyFilter(self, **kwargs):
         temp = self.ForShow()
