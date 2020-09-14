@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
-from PIL.Image import fromarray
+from PIL.Image import fromarray, Image
 from datetime import datetime
 import os
 
@@ -17,23 +17,23 @@ Sharpen3x3 = np.array([[0, -1, 0],
 Sharpen3x3 = Sharpen3x3.reshape((3, 3))
 
 
-class EMD2D:
+class EMD2D():
     IMFs: np.ndarray = np.array([])
     Rs = None
     Gs = None
     Bs = None
     NoIMFs: int = 0
 
-    def __init__(self, image: np.ndarray, save=True):
+    def __init__(self, image):
         if image is None:
             return
-
         self.EMD = EMD
-        self.img = None
-        if save:
-            self.img = image
+        if type(image) == Image:
+            self.img = np.array(image)
 
-        self.shape = image.shape
+        else:
+            self.img = image.copy()
+        self.shape = self.img.shape
 
         def emd_images_col(colOfImage: np.ndarray):
             return self.EMD(colOfImage).decompose()
@@ -78,26 +78,26 @@ class EMD2D:
                 AddDecomposed(deco.copy())
             return self.IMFs.copy()
 
-        if len(image.shape) == 3:
+        if len(self.img.shape) == 3:
             No = 3
-            self.Rs = Run(image[:, :, 0])
+            self.Rs = Run(self.img[:, :, 0])
             No += self.NoIMFs
-            errorImf = image[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
+            errorImf = self.img[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
             self.Rs = np.concatenate((self.Rs, errorImf.transpose()[None]))
 
-            self.Gs = Run(image[:, :, 1])
+            self.Gs = Run(self.img[:, :, 1])
             No += self.NoIMFs
-            errorImf = image[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
+            errorImf = self.img[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
             self.Gs = np.concatenate((self.Gs, errorImf.transpose()[None]))
 
-            self.Bs = Run(image[:, :, 2])
+            self.Bs = Run(self.img[:, :, 2])
             self.NoIMFs += No
-            errorImf = image[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
+            errorImf = self.img[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
             self.Bs = np.concatenate((self.Bs, errorImf.transpose()[None]))
 
         else:
-            Run(image)
-            errorImf = image - self.reConstruct()
+            Run(self.img)
+            errorImf = self.img - self.reConstruct()
             errorImf = errorImf.transpose()
             self.IMFs = np.concatenate((self.IMFs, errorImf[None]))
             self.NoIMFs += 1
@@ -247,15 +247,18 @@ class EMD2D:
         return ""
 
     def __cmp__(self, other):
-        if other.shape != self.shape:
+        other1 = other
+        if type(other) == Image:
+            other1 = np.array(other)
+
+        if other1.shape != self.shape:
             print("Couldn't compare")
             return False
-
         x1 = self.reConstruct()
-        if type(other) == np.ndarray:
-            return x1 == other
+        if type(other1) == np.ndarray:
+            return x1 == other1
 
-        x2 = other.ForShow(False)
+        x2 = other1.ForShow(False)
         return x1 == x2
 
     def applyFilter(self, **kwargs):
