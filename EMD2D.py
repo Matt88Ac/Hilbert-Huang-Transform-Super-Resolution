@@ -184,13 +184,16 @@ class EMD2D:
             while len(keys) != 2:
                 keys.append(slice(None, None))
 
-            return tmp[:, keys[0], keys[1]]
+            if len(tmp.shape) == 3:
+                return tmp[:, keys[0], keys[1]]
+            return tmp[keys[0], keys[1]]
 
         else:
             while len(keys) != 3:
                 keys.append(slice(None, None))
-
-            return tmp[:, keys[0], keys[1], keys[2]]
+            if len(tmp.shape) == 4:
+                return tmp[:, keys[0], keys[1], keys[2]]
+            return tmp[keys[0], keys[1], keys[2]]
 
     def reConstruct(self) -> np.ndarray:
         if len(self.shape) == 2:
