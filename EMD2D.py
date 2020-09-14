@@ -38,7 +38,7 @@ class EMD2D:
         def emd_images_col(colOfImage: np.ndarray):
             return self.EMD(colOfImage).decompose()
 
-        def concatZeros(row: np.ndarray, howMuch: int, bo) -> np.ndarray:
+        def concatZeros(row: np.ndarray, howMuch: int) -> np.ndarray:
             if len(row.shape) == 1:
                 return np.vstack((row, np.zeros((howMuch, row.shape[0]))))
             return np.vstack((row, np.zeros((howMuch, row.shape[1]))))
@@ -57,14 +57,14 @@ class EMD2D:
             elif n < 0:
                 for i in range(self.NoIMFs, newIMF.shape[0]):
                     toAdd = newArr[0].shape[0] - 1
-                    ta = np.array([concatZeros(newIMF[i], toAdd, False)])
+                    ta = np.array([concatZeros(newIMF[i], toAdd)])
                     newArr = np.vstack((newArr, ta))
                 self.IMFs = newArr.copy()
                 self.NoIMFs = newIMF.shape[0]
                 return
 
             for i in range(newIMF.shape[0], self.NoIMFs):
-                ta = np.array([concatZeros(self.IMFs[i], 1, True)])
+                ta = np.array([concatZeros(self.IMFs[i], 1)])
                 newArr = np.vstack((newArr, ta))
             self.IMFs = newArr.copy()
 
@@ -79,15 +79,28 @@ class EMD2D:
             return self.IMFs.copy()
 
         if len(image.shape) == 3:
-            No = 0
+            No = 3
             self.Rs = Run(image[:, :, 0])
             No += self.NoIMFs
+            errorImf = image[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
+            self.Rs = np.concatenate((errorImf.transpose()[None], self.Rs))
+
             self.Gs = Run(image[:, :, 1])
             No += self.NoIMFs
+            errorImf = image[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
+            self.Gs = np.concatenate((errorImf.transpose()[None], self.Gs))
+
             self.Bs = Run(image[:, :, 2])
             self.NoIMFs += No
+            errorImf = image[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
+            self.Bs = np.concatenate((errorImf.transpose()[None], self.Bs))
+
         else:
             Run(image)
+            errorImf = image - self.reConstruct()
+            errorImf = errorImf.transpose()
+            self.IMFs = np.concatenate((errorImf[None], self.IMFs))
+            self.NoIMFs += 1
 
     def __call(self, imf, dtype=None) -> np.ndarray:
         if type(imf) == slice:
@@ -129,12 +142,12 @@ class EMD2D:
                     return self.IMFs[imf].transpose().astype(np.uint8)
                 return np.zeros(self.shape).astype(np.uint8)
 
-            if dtype == None:
+            if dtype is None:
                 part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]))
             else:
                 part1 = part2 = part3 = np.zeros((self.shape[0], self.shape[1]), dtype=np.uint8)
 
-            x1 = dtype is None
+            x1 = dtype == None
             if imf < self.Rs.shape[0]:
                 part1 = self.Rs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + \
                         x1 * self.Rs[imf, :, :].transpose()
@@ -179,15 +192,15 @@ class EMD2D:
 
             return tmp[:, keys[0], keys[1], keys[2]]
 
-    def reConstruct(self):
-        def act(Imfs: np.ndarray, axis=0):
-            return np.sum(Imfs, axis=axis)
-
+    def reConstruct(self) -> np.ndarray:
         if len(self.shape) == 2:
-            return act(self.IMFs).transpose().astype(np.uint8)
+            return np.sum(self.IMFs, axis=0).transpose().astype(np.uint8)
 
-        return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
-                          act(self.Bs).transpose().astype(np.uint8)))
+        R = np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
+        G = np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
+        B = np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
+
+        return cv2.merge((R, G, B))
 
     def ForShow(self, median_filter=False):
         if len(self.shape) == 2:
