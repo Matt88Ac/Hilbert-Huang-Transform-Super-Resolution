@@ -17,7 +17,7 @@ Sharpen3x3 = np.array([[0, -1, 0],
 Sharpen3x3 = Sharpen3x3.reshape((3, 3))
 
 
-class EMD2D():
+class EMD2D:
     IMFs: np.ndarray = np.array([])
     Rs = None
     Gs = None
