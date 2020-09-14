@@ -83,23 +83,23 @@ class EMD2D:
             self.Rs = Run(image[:, :, 0])
             No += self.NoIMFs
             errorImf = image[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
-            self.Rs = np.concatenate((errorImf.transpose()[None], self.Rs))
+            self.Rs = np.concatenate((self.Rs, errorImf.transpose()[None]))
 
             self.Gs = Run(image[:, :, 1])
             No += self.NoIMFs
             errorImf = image[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
-            self.Gs = np.concatenate((errorImf.transpose()[None], self.Gs))
+            self.Gs = np.concatenate((self.Gs, errorImf.transpose()[None]))
 
             self.Bs = Run(image[:, :, 2])
             self.NoIMFs += No
             errorImf = image[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
-            self.Bs = np.concatenate((errorImf.transpose()[None], self.Bs))
+            self.Bs = np.concatenate((self.Bs, errorImf.transpose()[None]))
 
         else:
             Run(image)
             errorImf = image - self.reConstruct()
             errorImf = errorImf.transpose()
-            self.IMFs = np.concatenate((errorImf[None], self.IMFs))
+            self.IMFs = np.concatenate((self.IMFs, errorImf[None]))
             self.NoIMFs += 1
 
     def __call(self, imf, dtype=None) -> np.ndarray:
