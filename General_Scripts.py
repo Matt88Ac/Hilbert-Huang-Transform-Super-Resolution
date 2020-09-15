@@ -52,3 +52,7 @@ def imread_Interactive(flags=None):
         spot = 0
     path = 'DATA/' + lis[spot]
     return cv2.imread(path, flags)
+
+
+def imread(fname, flags):
+    return cv2.imread('DATA/' + fname, flags)
