@@ -2,11 +2,8 @@ import numpy as np
 from pyhht.emd import EmpiricalModeDecomposition as EMD
 import cv2
 from scipy import ndimage, signal
-import scipy.fft as fft
 from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
 from PIL.Image import fromarray, Image
 from datetime import datetime
 import os
@@ -398,10 +395,9 @@ class EMD2D:
 
         return temp
 
-    def applyFFT(self, median_filter=False, as_int=False):
-        dx = self.ForShow(median_filter=median_filter)
-        f1 = fft.fft2(dx)
-
+    def applyFFT(self, as_int=False):
+        dx = self.ForShow()
+        f1 = np.fft.fft2(dx)
         return f1.real * (1 - int(as_int)) + f1.real.astype(np.uint8) * int(as_int), f1
 
     def compare(self):
