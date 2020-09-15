@@ -4,7 +4,7 @@ from scipy import interpolate, signal, ndimage
 from tensorflow import image
 from matplotlib.pyplot import imshow
 from PIL import Image
-from EMD2D import EMD2D
+from Develop.EMD2D import EMD2D
 
 
 def Gaussian(img: np.ndarray, w: float, h: float):
