@@ -381,7 +381,10 @@ class EMD2D:
     def applyFFT(self, as_int=False):
         dx = self.ForShow()
         f1 = np.fft.fft2(dx)
-        return f1.real * (1 - int(as_int)) + f1.real.astype(np.uint8) * int(as_int), f1
+        if as_int:
+            return f1.real.astype(np.uint8), f1
+        
+        return f1.real, f1
 
     def compare(self):
         if len(self.shape) == 2:
