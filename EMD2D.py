@@ -197,24 +197,38 @@ class EMD2D:
                 return tmp[:, keys[0], keys[1], keys[2]]
             return tmp[keys[0], keys[1], keys[2]]
 
+    def __assemble(self, dtype=None) -> np.ndarray:
+        if dtype is None:
+            if len(self.shape) == 2:
+                return np.sum(self.IMFs, axis=0).transpose()
+
+            R = np.sum(self.Rs, axis=0).transpose()
+            G = np.sum(self.Gs, axis=0).transpose()
+            B = np.sum(self.Bs, axis=0).transpose()
+
+            return cv2.merge((R, G, B))
+
+        else:
+            if len(self.shape) == 2:
+                return np.sum(self.IMFs, axis=0).transpose().astype(dtype)
+
+            R = np.sum(self.Rs, axis=0).transpose().astype(dtype)
+            G = np.sum(self.Gs, axis=0).transpose().astype(dtype)
+            B = np.sum(self.Bs, axis=0).transpose().astype(dtype)
+
+            return cv2.merge((R, G, B))
+
     def reConstruct(self) -> np.ndarray:
-        if len(self.shape) == 2:
-            return np.sum(self.IMFs, axis=0).transpose().astype(np.uint8)
-
-        R = np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
-        G = np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
-        B = np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
-
-        return cv2.merge((R, G, B))
+        return self.__assemble()
 
     def ForShow(self, median_filter=False):
         if len(self.shape) == 2:
-            ret = self.reConstruct()
+            ret = self.__assemble(dtype=np.uint8)
             if median_filter:
                 ret = ndimage.median_filter(ret, 3)
             return ret
 
-        ret = cv2.cvtColor(self.reConstruct(), cv2.COLOR_BGR2RGB)
+        ret = cv2.cvtColor(self.__assemble(dtype=np.uint8), cv2.COLOR_BGR2RGB)
         if median_filter:
             ret = ndimage.median_filter(ret, 3)
 
@@ -263,26 +277,74 @@ class EMD2D:
         x2 = other1.ForShow(False)
         return x1 == x2
 
-    def __pow__(self, power, modulo=None):
-        pass
+    def __pow__(self, power, modulo=None) -> np.ndarray:
+        return self.__assemble(np.uint8) ** power
 
-    def __add__(self, other):
-        pass
+    def __add__(self, other) -> np.ndarray:
+        temp = other
+        if type(other) == Image:
+            temp = np.array(other)
+            return self.__assemble(np.uint8) + temp
 
-    def __sub__(self, other):
-        pass
+        elif type(other) == np.ndarray:
+            return self.ForShow() + other
 
-    def __rsub__(self, other):
-        pass
+        else:
+            return self.ForShow() + other.ForShow()
 
-    def __radd__(self, other):
-        pass
+    def __sub__(self, other) -> np.ndarray:
+        temp = other
+        if type(other) == Image:
+            temp = np.array(other)
+            return self.__assemble(np.uint8) - temp
 
-    def __mul__(self, other):
-        pass
+        elif type(other) == np.ndarray:
+            return self.ForShow() - other
 
-    def __rdiv__(self, other):
-        pass
+        else:
+            return self.ForShow() - other.ForShow()
+
+    def __rsub__(self, other) -> np.ndarray:
+        temp = other
+        if type(other) == Image:
+            temp = np.array(other)
+            return temp - self.__assemble(np.uint8)
+
+        elif type(other) == np.ndarray:
+            return other - self.ForShow()
+
+        else:
+            return other.ForShow() - self.ForShow()
+
+    def __radd__(self, other) -> np.ndarray:
+        return self.__add__(other)
+
+    def __mul__(self, other) -> np.ndarray:
+        temp = other
+        if type(other) == Image:
+            temp = np.array(other)
+            return temp * self.__assemble(np.uint8)
+
+        elif type(other) == np.ndarray:
+            return other * self.ForShow()
+
+        else:
+            return other.ForShow() * self.ForShow()
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __rdiv__(self, other) -> np.ndarray:
+        temp = other
+        if type(other) == Image:
+            temp = np.array(other)
+            return temp / self.__assemble(np.uint8)
+
+        elif type(other) == np.ndarray:
+            return other / self.ForShow()
+
+        else:
+            return other.ForShow() / self.ForShow()
 
     def __iter__(self):
         if self.iter >= len(self):
@@ -338,7 +400,7 @@ class EMD2D:
 
     def applyFFT(self, median_filter=False, as_int=False):
         dx = self.ForShow(median_filter=median_filter)
-        f1 = fft.fft(dx)
+        f1 = fft.fft2(dx)
 
         return f1.real * (1 - int(as_int)) + f1.real.astype(np.uint8) * int(as_int), f1
 
