@@ -33,7 +33,7 @@ def imread_Interactive(flags=None):
             continue
 
         print("Standing on: " + lis[spot])
-        print("\ ***********\nSelect current: esc\nForward: ++\nBackward: --\n ********** \n")
+        print("\n ***********\nSelect current: esc\nForward: ++\nBackward: --\n ********** \n")
         inp = input("Search: ")
 
         if inp == 'esc':
