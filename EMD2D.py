@@ -190,7 +190,7 @@ class EMD2D:
                 return tmp[:, keys[0], keys[1], keys[2]]
             return tmp[keys[0], keys[1], keys[2]]
 
-    def __getitem__(self, imf):
+    def __getitem__(self, imf) -> np.ndarray:
         if type(imf) == slice:
             tmp = self.__call(imf=imf)
             return tmp
@@ -278,6 +278,7 @@ class EMD2D:
 
     def __repr__(self):
         tmp = self.ForShow(median_filter=False)
+        plt.figure(figsize=(20, 20))
         if len(self.shape) == 2:
             plt.imshow(tmp, cmap='gray', norm=NoNorm())
         else:
@@ -322,9 +323,22 @@ class EMD2D:
         laplace = 'laplace' in keys
         sharp = 'sharpen' in keys
         median = 'median' in keys
+        mx = 'max' in keys
+        mn = 'min' in keys
+        uni = 'uniform' in keys
+        spline = 'spline' in keys
+        order = 'order' in keys
 
         if not sigma:
             sigma = 0.1
+        else:
+            sigma = kwargs['sigma']
+
+        if not order:
+            order = 3
+        else:
+            order = kwargs['order']
+
         if gaussian:
             temp = ndimage.gaussian_filter(temp, sigma)
 
@@ -337,11 +351,23 @@ class EMD2D:
         if median:
             temp = ndimage.median_filter(temp, 3)
 
+        if mx:
+            temp = ndimage.maximum_filter(temp, 3)
+
+        if mn:
+            temp = ndimage.minimum_filter(temp, 3)
+
+        if uni:
+            temp = ndimage.uniform_filter(temp)
+
         if sobel:
             temp = ndimage.sobel(temp)
 
         if prewitt:
             temp = ndimage.prewitt(temp)
+
+        if spline:
+            temp = ndimage.spline_filter(temp, order=order)
 
         if sharp:
             if len(temp.shape) == 2:
