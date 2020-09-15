@@ -7,11 +7,7 @@ from matplotlib.colors import NoNorm
 from PIL.Image import fromarray, Image
 from datetime import datetime
 import os
-
-Sharpen3x3 = np.array([[0, -1, 0],
-                       [-1, 5, -1],
-                       [0, -1, 0]])
-Sharpen3x3 = Sharpen3x3.reshape((3, 3))
+from General_Scripts import Sharpen3x3
 
 
 class EMD2D:
@@ -278,7 +274,7 @@ class EMD2D:
 
     def __repr__(self):
         tmp = self.ForShow(median_filter=False)
-        tmp = cv2.resize(tmp, (tmp.shape[1]*5, tmp.shape[0]*5), interpolation=cv2.INTER_CUBIC)
+        tmp = cv2.resize(tmp, (tmp.shape[1] * 5, tmp.shape[0] * 5), interpolation=cv2.INTER_CUBIC)
         if len(self.shape) == 2:
             plt.imshow(tmp, cmap='gray', norm=NoNorm())
         else:
@@ -383,7 +379,7 @@ class EMD2D:
         f1 = np.fft.fft2(dx)
         if as_int:
             return f1.real.astype(np.uint8), f1
-        
+
         return f1.real, f1
 
     def compare(self):
