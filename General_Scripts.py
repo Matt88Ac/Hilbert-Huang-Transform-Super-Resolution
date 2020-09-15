@@ -16,6 +16,7 @@ def imread_Interactive(flags=None):
     name = ''
     spot = 0
     while True:
+        print("\n \n \n")
         print(str(spot + 1) + ' of ' + str(len(lis)))
         if spot >= len(lis):
             lis = os.listdir(path)
@@ -31,8 +32,9 @@ def imread_Interactive(flags=None):
             print("Error 2")
             continue
 
-        print(lis[spot])
-        inp = input()
+        print("Standing on: " + lis[spot])
+        print("\ ***********\nSelect current: esc\nForward: ++\nBackward: --\n ********** \n")
+        inp = input("Search: ")
 
         if inp == 'esc':
             break
@@ -50,6 +52,3 @@ def imread_Interactive(flags=None):
         spot = 0
     path = 'DATA/' + lis[spot]
     return cv2.imread(path, flags)
-
-
-imread_Interactive()
