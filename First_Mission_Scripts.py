@@ -1,4 +1,4 @@
-from EMD2D import EMD2D
+from Develop.EMD2D import EMD2D
 import numpy as np
 import pandas as pd
 # from matplotlib.pyplot import imshow, imread

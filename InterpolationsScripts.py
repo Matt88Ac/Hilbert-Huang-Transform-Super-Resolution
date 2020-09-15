@@ -1,4 +1,5 @@
-from Interpolations import def_interpolations, imreadAndEMD, EMD2D
+from Develop.Interpolations import def_interpolations, imreadAndEMD
+from Develop.EMD2D import EMD2D
 import pandas as pd
 import os
 import numpy as np
