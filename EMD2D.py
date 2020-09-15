@@ -162,7 +162,33 @@ class EMD2D:
 
     def __call__(self, imf) -> np.ndarray:
         if type(imf) == slice:
-            pass
+            tmp = self.__call(imf=imf, dtype=0)
+            return tmp
+
+        elif type(imf) == int:
+            tmp = self.__call(imf=imf, dtype=0)
+            return tmp
+
+        keys = list(imf)
+        tmp = self.__call(imf=keys[0], dtype=0)
+
+        len2 = len(self.shape) == 2
+
+        keys = keys[1:]
+        if len2:
+            while len(keys) != 2:
+                keys.append(slice(None, None))
+
+            if len(tmp.shape) == 3:
+                return tmp[:, keys[0], keys[1]]
+            return tmp[keys[0], keys[1]]
+
+        else:
+            while len(keys) != 3:
+                keys.append(slice(None, None))
+            if len(tmp.shape) == 4:
+                return tmp[:, keys[0], keys[1], keys[2]]
+            return tmp[keys[0], keys[1], keys[2]]
 
     def __getitem__(self, imf):
         if type(imf) == slice:
@@ -273,75 +299,6 @@ class EMD2D:
 
         x2 = other1.ForShow(False)
         return x1 == x2
-
-    def __pow__(self, power, modulo=None) -> np.ndarray:
-        return self.__assemble(np.uint8) ** power
-
-    def __add__(self, other) -> np.ndarray:
-        temp = other
-        if type(other) == Image:
-            temp = np.array(other)
-            return self.__assemble(np.uint8) + temp
-
-        elif type(other) == np.ndarray:
-            return self.ForShow() + other
-
-        else:
-            return self.ForShow() + other.ForShow()
-
-    def __sub__(self, other) -> np.ndarray:
-        temp = other
-        if type(other) == Image:
-            temp = np.array(other)
-            return self.__assemble(np.uint8) - temp
-
-        elif type(other) == np.ndarray:
-            return self.ForShow() - other
-
-        else:
-            return self.ForShow() - other.ForShow()
-
-    def __rsub__(self, other) -> np.ndarray:
-        temp = other
-        if type(other) == Image:
-            temp = np.array(other)
-            return temp - self.__assemble(np.uint8)
-
-        elif type(other) == np.ndarray:
-            return other - self.ForShow()
-
-        else:
-            return other.ForShow() - self.ForShow()
-
-    def __radd__(self, other) -> np.ndarray:
-        return self.__add__(other)
-
-    def __mul__(self, other) -> np.ndarray:
-        temp = other
-        if type(other) == Image:
-            temp = np.array(other)
-            return temp * self.__assemble(np.uint8)
-
-        elif type(other) == np.ndarray:
-            return other * self.ForShow()
-
-        else:
-            return other.ForShow() * self.ForShow()
-
-    def __rmul__(self, other):
-        return self.__mul__(other)
-
-    def __rdiv__(self, other) -> np.ndarray:
-        temp = other
-        if type(other) == Image:
-            temp = np.array(other)
-            return temp / self.__assemble(np.uint8)
-
-        elif type(other) == np.ndarray:
-            return other / self.ForShow()
-
-        else:
-            return other.ForShow() / self.ForShow()
 
     def __iter__(self):
         if self.iter >= len(self):
