@@ -8,7 +8,7 @@ Sharpen3x3 = np.array([[0, -1, 0],
 Sharpen3x3 = Sharpen3x3.reshape((3, 3))
 
 
-def imread_Interactive(flags=None):
+def interactiveImread(flags=None):
     path = os.getcwd()
     path = path.replace(path[2], '/')
     temp = path.split('/')
