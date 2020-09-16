@@ -24,7 +24,7 @@ class EMD2D:
     Bs = None
     NoIMFs: int = 0
 
-    def __init__(self, image: np.ndarray, save=True):
+    def __init__(self, image: np.ndarray):
         if image is None:
             return
 
@@ -39,7 +39,7 @@ class EMD2D:
         self.stdFrequency = self.MeanFrequency.copy()
 
         def Run(img: np.ndarray, n=0):
-            
+
             def emd_images_col(colOfImage: np.ndarray):
                 return self.EMD(colOfImage).decompose()
 
@@ -50,9 +50,6 @@ class EMD2D:
                 decCol = emd_images_col(colOfImage)
                 dft = fftMyIMF(decCol)
 
-                mn = self.MeanFrequency.mean()
-
-
                 if len(self.MeanFrequency.shape) == 1:
                     self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
                     self.stdFrequency = np.append(self.stdFrequency, dft.std(axis=1))
@@ -61,7 +58,30 @@ class EMD2D:
                     self.MeanFrequency[n] = np.append(self.MeanFrequency[n], dft.mean(axis=1))
                     self.stdFrequency[n] = np.append(self.stdFrequency[n], dft.std(axis=1))
 
+                return np.array2string(decCol, separator=',', suppress_small=False,
+                                       formatter={'longfloat': lambda x: x}), \
+                       decCol.shape[0]
 
+            k = img.shape[1]
+            temp_imfs = np.empty(k, dtype=str)
+            size = 0
+            max_size = 0
+            for i in range(n):
+                temp_imfs[size], tnum = decAndFFT(img[:, i])
+                if tnum > max_size:
+                    max_size = tnum
+                size += 1
+            self.NoIMFs = max_size
+
+            if len(self.shape) == 2:
+                mx = self.MeanFrequency.max()
+                mn = self.MeanFrequency.min()
+
+            else:
+                mx = self.MeanFrequency[n].max()
+                mn = self.MeanFrequency[n].min()
+
+                
 
 
 
