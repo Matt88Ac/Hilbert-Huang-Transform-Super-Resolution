@@ -5,6 +5,7 @@ from tensorflow import image
 from matplotlib.pyplot import imshow
 from PIL import Image
 from Develop.EMD2D import EMD2D
+from General_Scripts import interactiveImread
 
 
 def Gaussian(img: np.ndarray, w: float, h: float):
@@ -96,11 +97,8 @@ def RescaleAndScatter(img: np.ndarray, w: float, h: float) -> np.ndarray:
     to_interp_x: np.ndarray = np.arange(0, img.shape[0]) * w
     to_interp_y: np.ndarray = np.arange(0, img.shape[1]) * h
 
-    spots_x = np.abs(to_interp_x - np.round(to_interp_x)) <= epsilon
-    spots_y = np.abs(to_interp_y - np.round(to_interp_y)) <= epsilon
-
-    spots_x += ~spots_x
-    spots_y += ~spots_y
+    spots_x = np.repeat(True, to_interp_x.shape)
+    spots_y = np.repeat(True, to_interp_y.shape)
 
     for_original_x = np.round(to_interp_x[spots_x].copy() / w).astype(int)
     for_original_y = np.round(to_interp_y[spots_y].copy() / h).astype(int)
@@ -130,9 +128,9 @@ def imreadAndEMD(name: str, grey=0):
 
     return EMD2D(image=img), img
 
-# image = cv2.imread('DATA/dog.jpg', 0)
-# image = cv2.resize(image, (70, 70), interpolation=cv2.INTER_CUBIC)
+# image = interactiveImread(0)
 # image = Image.fromarray(image)
 # image.show()
-# RescaleAndScatter(image, 3.55, 2.2)
+# x1 = Image.fromarray(RescaleAndScatter(image, 3.55, 2.2))
+# x1.show()
 # RBF(image, 5, 2)
