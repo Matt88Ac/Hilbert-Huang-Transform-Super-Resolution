@@ -41,12 +41,13 @@ class EMD2D:
         def Run(img: np.ndarray, n=0):
 
             def emd_images_col(colOfImage: np.ndarray):
-                return self.EMD(colOfImage).decompose()
+                to_ret = self.EMD(colOfImage).decompose()
+                return to_ret #.reshape((to_ret.shape[1], to_ret.shape[0]))
 
             def fftMyIMF(imf: np.ndarray) -> np.ndarray:
                 return np.fft.fft(imf).real
 
-            def decAndFFT(colOfImage: np.ndarray):
+            def decAndFFT(colOfImage: np.ndarray) -> np.ndarray:
                 decCol = emd_images_col(colOfImage)
                 dft = fftMyIMF(decCol)
 
@@ -58,18 +59,21 @@ class EMD2D:
                     self.MeanFrequency[n] = np.append(self.MeanFrequency[n], dft.mean(axis=1))
                     self.stdFrequency[n] = np.append(self.stdFrequency[n], dft.std(axis=1))
 
-                return np.array2string(decCol, separator=',', suppress_small=False,
-                                       formatter={'longfloat': lambda x: x}), decCol.shape[0]
+                return decCol
 
-            temp_imfs = np.empty(img.shape[1], dtype=str)
+            temp_imfs = []
             size = 0
             max_size = 0
             for i in range(img.shape[1]):
-                temp_imfs[size], tnum = decAndFFT(img[:, i])
+                dec1 = decAndFFT(img[:, i])
+                tnum = dec1.shape[0]
+                temp_imfs.append(np.array2string(dec1, separator=',', suppress_small=False))
                 if tnum > max_size:
                     max_size = tnum
                 size += 1
             self.NoIMFs = max_size
+            temp_imfs = np.array(temp_imfs)
+            dec1 = None
 
             if len(self.shape) == 2:
                 mx = np.max(self.MeanFrequency)
@@ -80,55 +84,70 @@ class EMD2D:
                 mn = self.MeanFrequency[n].min()
 
             indicator = np.zeros(max_size + 1)
-            diffs = (mx - mn)/max_size
-            for i in range(max_size+1):
-                indicator[i] = diffs*(i+1)
+            diffs = (mx - mn) / max_size
+            for i in range(max_size + 1):
+                indicator[i] = diffs * (i + 1)
 
-            def classifySpot(ranges: np.ndarray, value):
-                t1 = ranges <= value
-                t2 = ranges >= value
-                t_f = t1 * t2
-                spots = np.arange(1, len(ranges)+1) * t_f.astype(int)
-                spots = spots[spots != 0]
-                return spots - 1
+            def classifySpots(ranges: np.ndarray, values: np.ndarray) -> np.ndarray:
+                tf = 0
+                for ind in range(len(values)):
+                    t1 = ranges <= values[ind]
+                    t2 = ranges >= values[ind]
+                    if ind == 0:
+                        tf = t1 * t2
+                    else:
+                        tf += t2 * t1
+                return tf
 
             def deFrozeIMFs(imfs: str) -> np.ndarray:
                 temp = imfs[1:len(imfs) - 1]
                 temp = temp.split('],')
-                arr = np.empty((len(temp), self.shape[1]))
+                arr = np.empty((len(temp), self.shape[0]))
                 for j in range(len(temp)):
                     t1 = temp[j].replace('\n', '').replace('[', '')
                     if t1 == '':
                         continue
                     arr[j] = np.fromstring(t1, sep=',', dtype=float)
-                return arr
+                return arr.transpose()
 
             k = 0
             for i in range(len(temp_imfs)):
                 dec = deFrozeIMFs(temp_imfs[i])
-                if dec.shape[0] == max_size:
-                    k += dec.shape[0]
+                dec = dec.reshape((1, dec.shape[0], dec.shape[1]))
+                if dec.shape[1] == max_size:
+                    k += dec.shape[1]
                     if len(self.IMFs) == 0:
                         self.IMFs = dec.copy()
+                        # self.IMFs = self.IMFs.reshape((1, self.IMFs.shape[0], self.IMFs.shape[1]))
                         continue
                     else:
-                        newArr = np.array([np.vstack((self.IMFs[0], dec[0]))])
-                        for j in range(1, max_size):
-                            newArr = np.vstack((newArr, np.array([np.vstack((self.IMFs[i], dec[i]))])))
-                        self.IMFs = newArr.copy()
+                        self.IMFs = np.concatenate((self.IMFs, dec), axis=0)
+                        # newArr = np.array([np.vstack((self.IMFs[0], dec[0]))])
+                        # for j in range(1, max_size):
+                        #    newArr = np.vstack((newArr, np.array([np.vstack((self.IMFs[i], dec[i]))])))
+                        # self.IMFs = newArr.copy()
+                        continue
                 else:
-                    pass
+                    if len(self.shape) == 2:
+                        rel_mean = self.MeanFrequency[k: k + dec.shape[2]]
+                    else:
+                        rel_mean = self.MeanFrequency[n][k: k + dec.shape[2]]
+                    toAdd = np.zeros((max_size, dec.shape[2]))
+                    toAdd[classifySpots(indicator, rel_mean)] = dec.copy()
 
+                    if len(self.IMFs) == 0:
+                        self.IMFs = toAdd.copy()
 
+                    else:
+                        self.IMFs = np.concatenate((self.IMFs, toAdd), axis=0)
+            return self.IMFs
 
-
-
-
-
-
-
-
-            
+        if len(self.shape) == 2:
+            Run(image)
+            errorImf = self.img - self.reConstruct()
+            errorImf = errorImf.reshape((1, errorImf.shape[0], errorImf.shape[1]))
+            self.IMFs = np.concatenate((self.IMFs, errorImf), axis=2)
+            self.NoIMFs += 1
 
     def __call(self, imf, dtype=None) -> np.ndarray:
         if type(imf) == slice:
@@ -221,11 +240,11 @@ class EMD2D:
             return tmp[:, keys[0], keys[1], keys[2]]
 
     def reConstruct(self):
-        def act(Imfs: np.ndarray, axis=0):
+        def act(Imfs: np.ndarray, axis=2):
             return np.sum(Imfs, axis=axis)
 
         if len(self.shape) == 2:
-            return act(self.IMFs).transpose().astype(np.uint8)
+            return act(self.IMFs).astype(np.uint8)
 
         return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
                           act(self.Bs).transpose().astype(np.uint8)))
@@ -261,15 +280,6 @@ class EMD2D:
 
         tmp.NoIMFs = self.NoIMFs
         return tmp
-
-    def __repr__(self):
-        tmp = self.ForShow(median_filter=False)
-        if len(self.shape) == 2:
-            plt.imshow(tmp, cmap='gray', norm=NoNorm())
-        else:
-            plt.imshow(tmp)
-        plt.show()
-        return ""
 
     def __cmp__(self, other):
         if other.shape != self.shape:
@@ -379,3 +389,7 @@ class EMD2D:
     def show(self):
         x0 = fromarray(self.ForShow())
         x0.show()
+
+
+im = cv2.imread('DATA/dog.jpg', 0)
+deco = EMD2D(im)
