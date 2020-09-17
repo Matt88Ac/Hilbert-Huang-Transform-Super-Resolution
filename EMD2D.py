@@ -59,14 +59,12 @@ class EMD2D:
                     self.stdFrequency[n] = np.append(self.stdFrequency[n], dft.std(axis=1))
 
                 return np.array2string(decCol, separator=',', suppress_small=False,
-                                       formatter={'longfloat': lambda x: x}), \
-                       decCol.shape[0]
+                                       formatter={'longfloat': lambda x: x}), decCol.shape[0]
 
-            k = img.shape[1]
-            temp_imfs = np.empty(k, dtype=str)
+            temp_imfs = np.empty(img.shape[1], dtype=str)
             size = 0
             max_size = 0
-            for i in range(n):
+            for i in range(img.shape[1]):
                 temp_imfs[size], tnum = decAndFFT(img[:, i])
                 if tnum > max_size:
                     max_size = tnum
@@ -74,14 +72,62 @@ class EMD2D:
             self.NoIMFs = max_size
 
             if len(self.shape) == 2:
-                mx = self.MeanFrequency.max()
-                mn = self.MeanFrequency.min()
+                mx = np.max(self.MeanFrequency)
+                mn = np.min(self.MeanFrequency)
 
             else:
                 mx = self.MeanFrequency[n].max()
                 mn = self.MeanFrequency[n].min()
 
-            freqArr = np.zeros(max_size)
+            indicator = np.zeros(max_size + 1)
+            diffs = (mx - mn)/max_size
+            for i in range(max_size+1):
+                indicator[i] = diffs*(i+1)
+
+            def classifySpot(ranges: np.ndarray, value):
+                t1 = ranges <= value
+                t2 = ranges >= value
+                t_f = t1 * t2
+                spots = np.arange(1, len(ranges)+1) * t_f.astype(int)
+                spots = spots[spots != 0]
+                return spots - 1
+
+            def deFrozeIMFs(imfs: str) -> np.ndarray:
+                temp = imfs[1:len(imfs) - 1]
+                temp = temp.split('],')
+                arr = np.empty((len(temp), self.shape[1]))
+                for j in range(len(temp)):
+                    t1 = temp[j].replace('\n', '').replace('[', '')
+                    if t1 == '':
+                        continue
+                    arr[j] = np.fromstring(t1, sep=',', dtype=float)
+                return arr
+
+            k = 0
+            for i in range(len(temp_imfs)):
+                dec = deFrozeIMFs(temp_imfs[i])
+                if dec.shape[0] == max_size:
+                    k += dec.shape[0]
+                    if len(self.IMFs) == 0:
+                        self.IMFs = dec.copy()
+                        continue
+                    else:
+                        newArr = np.array([np.vstack((self.IMFs[0], dec[0]))])
+                        for j in range(1, max_size):
+                            newArr = np.vstack((newArr, np.array([np.vstack((self.IMFs[i], dec[i]))])))
+                        self.IMFs = newArr.copy()
+                else:
+                    pass
+
+
+
+
+
+
+
+
+
+
             
 
     def __call(self, imf, dtype=None) -> np.ndarray:
