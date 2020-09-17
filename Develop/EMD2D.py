@@ -274,7 +274,7 @@ class EMD2D:
 
     def __repr__(self):
         tmp = self.ForShow(median_filter=False)
-        tmp = cv2.resize(tmp, (tmp.shape[1] * 5, tmp.shape[0] * 5), interpolation=cv2.INTER_CUBIC)
+        #tmp = cv2.resize(tmp, (tmp.shape[1] * 5, tmp.shape[0] * 5), interpolation=cv2.INTER_CUBIC)
         if len(self.shape) == 2:
             plt.imshow(tmp, cmap='gray', norm=NoNorm())
         else:
