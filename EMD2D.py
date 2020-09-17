@@ -81,10 +81,8 @@ class EMD2D:
                 mx = self.MeanFrequency[n].max()
                 mn = self.MeanFrequency[n].min()
 
-                
-
-
-
+            freqArr = np.zeros(max_size)
+            
 
     def __call(self, imf, dtype=None) -> np.ndarray:
         if type(imf) == slice:
