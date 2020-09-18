@@ -42,7 +42,7 @@ class EMD2D:
 
             def emd_images_col(colOfImage: np.ndarray):
                 to_ret = self.EMD(colOfImage).decompose()
-                return to_ret #.reshape((to_ret.shape[1], to_ret.shape[0]))
+                return to_ret  # .reshape((to_ret.shape[1], to_ret.shape[0]))
 
             def fftMyIMF(imf: np.ndarray) -> np.ndarray:
                 return np.fft.fft(imf).real
@@ -83,20 +83,38 @@ class EMD2D:
                 mx = self.MeanFrequency[n].max()
                 mn = self.MeanFrequency[n].min()
 
-            indicator = np.zeros(max_size + 1)
+            indicator = np.empty((max_size, 2))
             diffs = (mx - mn) / max_size
-            for i in range(max_size + 1):
-                indicator[i] = diffs * (i + 1)
+            indicator[0] = np.array([mn, mn + diffs])
+            for i in range(1, max_size):
+                indicator[i] = np.array([indicator[i-1][1], diffs + indicator[i-1][1]])
 
-            def classifySpots(ranges: np.ndarray, values: np.ndarray) -> np.ndarray:
+            def classifySpots(ranges: np.ndarray, values: np.ndarray):
                 tf = 0
                 for ind in range(len(values)):
-                    t1 = ranges <= values[ind]
-                    t2 = ranges >= values[ind]
+                    t1 = ranges[:, 0] <= values[ind]
+                    t2 = ranges[:, 1] > values[ind]
                     if ind == 0:
                         tf = t1 * t2
                     else:
-                        tf += t2 * t1
+                        tt = t1*t2
+                        if tf[tt == True]:
+                            nk = 0
+                            tt = tt == True
+                            tt = np.arange(1, len(ranges) + 1) * tt.astype(int)
+                            tt = tt[tt!=0]
+                            tt -= 1
+                            while True:
+                                tt = tt % len(ranges)
+                                if not tf[tt]:
+                                    tf[tt] = True
+                                    break
+                                tt += 1
+                        else:
+                            tf += tt
+
+                to_ret = tf.astype(int) * np.arange(1, len(ranges) + 1)
+                to_ret = to_ret[to_ret != 0]
                 return tf
 
             def deFrozeIMFs(imfs: str) -> np.ndarray:
@@ -114,8 +132,8 @@ class EMD2D:
             for i in range(len(temp_imfs)):
                 dec = deFrozeIMFs(temp_imfs[i])
                 dec = dec.reshape((1, dec.shape[0], dec.shape[1]))
-                if dec.shape[1] == max_size:
-                    k += dec.shape[1]
+                if dec.shape[2] == max_size:
+                    k += dec.shape[2]
                     if len(self.IMFs) == 0:
                         self.IMFs = dec.copy()
                         # self.IMFs = self.IMFs.reshape((1, self.IMFs.shape[0], self.IMFs.shape[1]))
@@ -132,8 +150,12 @@ class EMD2D:
                         rel_mean = self.MeanFrequency[k: k + dec.shape[2]]
                     else:
                         rel_mean = self.MeanFrequency[n][k: k + dec.shape[2]]
-                    toAdd = np.zeros((max_size, dec.shape[2]))
-                    toAdd[classifySpots(indicator, rel_mean)] = dec.copy()
+                    spots = classifySpots(indicator, rel_mean)
+                    toAdd = np.zeros((1, dec.shape[1], max_size))
+                    #toAdd[0, :, spots] = dec[0, :, :]
+                    for kk in range(len(spots)):
+                        if spots[kk]:
+                            toAdd[0, :, kk] = dec[0, :, kk]
 
                     if len(self.IMFs) == 0:
                         self.IMFs = toAdd.copy()
@@ -207,10 +229,6 @@ class EMD2D:
                 part3 = self.Bs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + x1 * self.Bs[imf, :, :].transpose()
 
             return cv2.merge((part1, part2, part3))
-
-    def __call__(self, imf) -> np.ndarray:
-        if type(imf) == slice:
-            pass
 
     def __getitem__(self, imf):
         if type(imf) == slice:
