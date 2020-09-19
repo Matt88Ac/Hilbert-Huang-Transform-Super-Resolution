@@ -87,7 +87,7 @@ class EMD2D:
             diffs = (mx - mn) / max_size
             indicator[0] = np.array([mn, mn + diffs])
             for i in range(1, max_size):
-                indicator[i] = np.array([indicator[i-1][1], diffs + indicator[i-1][1]])
+                indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
 
             def classifySpots(ranges: np.ndarray, values: np.ndarray):
                 tf = 0
@@ -97,12 +97,12 @@ class EMD2D:
                     if ind == 0:
                         tf = t1 * t2
                     else:
-                        tt = t1*t2
+                        tt = t1 * t2
                         if tf[tt == True]:
                             nk = 0
                             tt = tt == True
                             tt = np.arange(1, len(ranges) + 1) * tt.astype(int)
-                            tt = tt[tt!=0]
+                            tt = tt[tt != 0]
                             tt -= 1
                             while True:
                                 tt = tt % len(ranges)
@@ -152,7 +152,7 @@ class EMD2D:
                         rel_mean = self.MeanFrequency[n][k: k + dec.shape[2]]
                     spots = classifySpots(indicator, rel_mean)
                     toAdd = np.zeros((1, dec.shape[1], max_size))
-                    #toAdd[0, :, spots] = dec[0, :, :]
+                    # toAdd[0, :, spots] = dec[0, :, :]
                     for kk in range(len(spots)):
                         if spots[kk]:
                             toAdd[0, :, kk] = dec[0, :, kk]
