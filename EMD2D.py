@@ -44,6 +44,31 @@ class EMD2D:
                 to_ret = self.EMD(colOfImage).decompose()
                 return to_ret  # .reshape((to_ret.shape[1], to_ret.shape[0]))
 
+            def classifySpots(ranges: np.ndarray, values: np.ndarray):
+                tf = 0
+                for ind in range(len(values)):
+                    t1 = ranges[:, 0] <= values[ind]
+                    t2 = ranges[:, 1] > values[ind]
+                    if ind == 0:
+                        tf = t1 * t2
+                    else:
+                        tt = t1 * t2
+                        if tf[tt == True]:
+                            tt = tt == True
+                            tt = np.arange(1, len(ranges) + 1) * tt.astype(int)
+                            tt = tt[tt != 0]
+                            tt -= 1
+                            tt = tt[0]
+                            while True:
+                                tt = tt % len(ranges)
+                                if not tf[tt]:
+                                    tf[tt] = True
+                                    break
+                                tt += 1
+                        else:
+                            tf += tt
+                return tf
+
             def fftMyIMF(imf: np.ndarray) -> np.ndarray:
                 return np.fft.fft(imf).real
 
@@ -89,78 +114,8 @@ class EMD2D:
             for i in range(1, max_size):
                 indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
 
-            def classifySpots(ranges: np.ndarray, values: np.ndarray):
-                tf = 0
-                for ind in range(len(values)):
-                    t1 = ranges[:, 0] <= values[ind]
-                    t2 = ranges[:, 1] > values[ind]
-                    if ind == 0:
-                        tf = t1 * t2
-                    else:
-                        tt = t1 * t2
-                        if tf[tt == True]:
-                            tt = tt is True
-                            tt = np.arange(1, len(ranges) + 1) * tt.astype(int)
-                            tt = tt[tt != 0]
-                            tt -= 1
-                            while True:
-                                tt = tt % len(ranges)
-                                if not tf[tt]:
-                                    tf[tt] = True
-                                    break
-                                tt += 1
-                        else:
-                            tf += tt
 
-                to_ret = tf.astype(int) * np.arange(1, len(ranges) + 1)
-                to_ret = to_ret[to_ret != 0]
-                return tf
 
-            def deFrozeIMFs(imfs: str) -> np.ndarray:
-                temp = imfs[1:len(imfs) - 1]
-                temp = temp.split('],')
-                arr = np.empty((len(temp), self.shape[0]))
-                for j in range(len(temp)):
-                    t1 = temp[j].replace('\n', '').replace('[', '')
-                    if t1 == '':
-                        continue
-                    arr[j] = np.fromstring(t1, sep=',', dtype=float)
-                return arr.transpose()
-
-            k = 0
-            for i in range(len(temp_imfs)):
-                dec = deFrozeIMFs(temp_imfs[i])
-                dec = dec.reshape((1, dec.shape[0], dec.shape[1]))
-                if dec.shape[2] == max_size:
-                    k += dec.shape[2]
-                    if len(self.IMFs) == 0:
-                        self.IMFs = dec.copy()
-                        # self.IMFs = self.IMFs.reshape((1, self.IMFs.shape[0], self.IMFs.shape[1]))
-                        continue
-                    else:
-                        self.IMFs = np.concatenate((self.IMFs, dec), axis=0)
-                        # newArr = np.array([np.vstack((self.IMFs[0], dec[0]))])
-                        # for j in range(1, max_size):
-                        #    newArr = np.vstack((newArr, np.array([np.vstack((self.IMFs[i], dec[i]))])))
-                        # self.IMFs = newArr.copy()
-                        continue
-                else:
-                    if len(self.shape) == 2:
-                        rel_mean = self.MeanFrequency[k: k + dec.shape[2]]
-                    else:
-                        rel_mean = self.MeanFrequency[n][k: k + dec.shape[2]]
-                    spots = classifySpots(indicator, rel_mean)
-                    toAdd = np.zeros((1, dec.shape[1], max_size))
-                    # toAdd[0, :, spots] = dec[0, :, :]
-                    for kk in range(len(spots)):
-                        if spots[kk]:
-                            toAdd[0, :, kk] = dec[0, :, kk]
-
-                    if len(self.IMFs) == 0:
-                        self.IMFs = toAdd.copy()
-
-                    else:
-                        self.IMFs = np.concatenate((self.IMFs, toAdd), axis=0)
             return self.IMFs
 
         if len(self.shape) == 2:
