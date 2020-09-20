@@ -8,6 +8,7 @@ from PIL.Image import fromarray, Image
 from datetime import datetime
 import os
 from General_Scripts import Sharpen3x3
+from General_Scripts import interactiveImread, imread
 
 
 class EMD2D:
@@ -30,7 +31,7 @@ class EMD2D:
 
         self.iter = 0
 
-        def emd_images_col(colOfImage: np.ndarray):
+        def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
             return self.EMD(colOfImage).decompose()
 
         def concatZeros(row: np.ndarray, howMuch: int) -> np.ndarray:
@@ -63,14 +64,31 @@ class EMD2D:
                 newArr = np.vstack((newArr, ta))
             self.IMFs = newArr.copy()
 
+        def newAdder(newIMF: np.ndarray):
+            n = checkZeroPad(newIMF)
+            if n == 0:
+                self.IMFs = np.concatenate((self.IMFs, newIMF), axis=1)
+
+            elif n < 0:
+                tempo = np.zeros((abs(n), self.IMFs.shape[1], self.IMFs.shape[2]))
+                self.IMFs = np.concatenate((self.IMFs, tempo), axis=0)
+                self.IMFs = np.concatenate((self.IMFs, newIMF), axis=1)
+                self.NoIMFs = self.IMFs.shape[0]
+
+            else:
+                tempo = np.zeros((abs(n), newIMF.shape[1], newIMF.shape[2]))
+                tempo = np.concatenate((newIMF, tempo))
+                self.IMFs = np.concatenate((self.IMFs, tempo), axis=1)
+
         def Run(img: np.ndarray) -> np.ndarray:
             deco = emd_images_col(img[:, 0])
             self.NoIMFs = deco.shape[0]
-            self.IMFs = deco.copy()
+            self.IMFs = deco.copy().reshape((deco.shape[0], 1, deco.shape[1]))
 
             for i in range(1, img.shape[1]):
                 deco = emd_images_col(img[:, i])
-                AddDecomposed(deco.copy())
+                deco = deco.reshape((deco.shape[0], 1, deco.shape[1]))
+                newAdder(deco.copy())
             return self.IMFs.copy()
 
         if len(self.img.shape) == 3:
@@ -274,7 +292,7 @@ class EMD2D:
 
     def __repr__(self):
         tmp = self.ForShow(median_filter=False)
-        #tmp = cv2.resize(tmp, (tmp.shape[1] * 5, tmp.shape[0] * 5), interpolation=cv2.INTER_CUBIC)
+        # tmp = cv2.resize(tmp, (tmp.shape[1] * 5, tmp.shape[0] * 5), interpolation=cv2.INTER_CUBIC)
         if len(self.shape) == 2:
             plt.imshow(tmp, cmap='gray', norm=NoNorm())
         else:
