@@ -99,8 +99,7 @@ class EMD2D:
                     else:
                         tt = t1 * t2
                         if tf[tt == True]:
-                            nk = 0
-                            tt = tt == True
+                            tt = tt is True
                             tt = np.arange(1, len(ranges) + 1) * tt.astype(int)
                             tt = tt[tt != 0]
                             tt -= 1
