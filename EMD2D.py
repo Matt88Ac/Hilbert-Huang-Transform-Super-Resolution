@@ -86,19 +86,30 @@ class EMD2D:
 
                 return decCol
 
-            temp_imfs = []
-            size = 0
             max_size = 0
             for i in range(img.shape[1]):
-                dec1 = decAndFFT(img[:, i])
-                tnum = dec1.shape[0]
-                temp_imfs.append(np.array2string(dec1, separator=',', suppress_small=False))
-                if tnum > max_size:
-                    max_size = tnum
-                size += 1
-            self.NoIMFs = max_size
-            temp_imfs = np.array(temp_imfs)
-            dec1 = None
+                newImf = decAndFFT(img[:, i])
+                if len(self.IMFs) == 0:
+                    self.IMFs = newImf.copy().reshape((newImf.shape[0], 1, newImf.shape[1]))
+                    self.NoIMFs = self.IMFs.shape[0]
+                    continue
+
+                diff = self.NoIMFs - newImf.shape[0]
+                newImf = newImf.reshape((newImf.shape[0], 1, newImf.shape[1]))
+                if diff == 0:
+                    self.IMFs = np.concatenate((self.IMFs, newImf), axis=1)
+                    continue
+
+                elif diff < 0:
+                    tempo = np.zeros((abs(diff), self.IMFs.shape[1], self.IMFs.shape[2]))
+                    self.IMFs = np.concatenate((self.IMFs, tempo), axis=0)
+                    self.IMFs = np.concatenate((self.IMFs, newImf), axis=1)
+                    self.NoIMFs = self.IMFs.shape[0]
+
+                else:
+                    tempo = np.zeros((abs(diff), newImf.shape[1], newImf.shape[2]))
+                    tempo = np.concatenate((newImf, tempo))
+                    self.IMFs = np.concatenate((self.IMFs, tempo), axis=1)
 
             if len(self.shape) == 2:
                 mx = np.max(self.MeanFrequency)
@@ -108,21 +119,19 @@ class EMD2D:
                 mx = self.MeanFrequency[n].max()
                 mn = self.MeanFrequency[n].min()
 
-            indicator = np.empty((max_size, 2))
-            diffs = (mx - mn) / max_size
+            indicator = np.empty((self.NoIMFs, 2))
+            diffs = (mx - mn) / self.NoIMFs
             indicator[0] = np.array([mn, mn + diffs])
-            for i in range(1, max_size):
+            for i in range(1, self.NoIMFs):
                 indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
-
-
 
             return self.IMFs
 
         if len(self.shape) == 2:
             Run(image)
-            errorImf = self.img - self.reConstruct()
+            errorImf = (self.img - self.reConstruct()).transpose()
             errorImf = errorImf.reshape((1, errorImf.shape[0], errorImf.shape[1]))
-            self.IMFs = np.concatenate((self.IMFs, errorImf), axis=2)
+            self.IMFs = np.concatenate((self.IMFs, errorImf), axis=0)
             self.NoIMFs += 1
 
     def __call(self, imf, dtype=None) -> np.ndarray:
@@ -212,11 +221,11 @@ class EMD2D:
             return tmp[:, keys[0], keys[1], keys[2]]
 
     def reConstruct(self):
-        def act(Imfs: np.ndarray, axis=2):
+        def act(Imfs: np.ndarray, axis=0):
             return np.sum(Imfs, axis=axis)
 
         if len(self.shape) == 2:
-            return act(self.IMFs).astype(np.uint8)
+            return act(self.IMFs).transpose().astype(np.uint8)
 
         return cv2.merge((act(self.Rs).transpose().astype(np.uint8), act(self.Gs).transpose().astype(np.uint8),
                           act(self.Bs).transpose().astype(np.uint8)))
@@ -365,3 +374,4 @@ class EMD2D:
 
 im = cv2.imread('DATA/dog.jpg', 0)
 deco = EMD2D(im)
+deco.show()
