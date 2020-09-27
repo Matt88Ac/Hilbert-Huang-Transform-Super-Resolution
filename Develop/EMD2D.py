@@ -381,13 +381,10 @@ class EMD2D:
     def compare(self):
         if len(self.shape) == 2:
             fig, (origin, decomp) = plt.subplots(2, 1, figsize=(20, 20))
-            fig.suptitle('All picture forms')
             origin.imshow(self.img, cmap='gray', norm=NoNorm())
             origin.set_title('Original')
             decomp.imshow(self.ForShow(False), cmap='gray', norm=NoNorm())
             decomp.set_title('Reconstructed picture')
-            # filtered.imshow(self.ForShow(), cmap='gray', norm=NoNorm())
-            # filtered.set_title('Reconstructed & Median-Filtered picture')
 
         else:
             fig, (origin, decomp) = plt.subplots(2, 1, figsize=(20, 20))
@@ -396,8 +393,6 @@ class EMD2D:
             origin.set_title('Original')
             decomp.imshow(self.ForShow(False))
             decomp.set_title('Reconstructed picture')
-            # filtered.imshow(self.ForShow())
-            # filtered.set_title('Reconstructed & Median-Filtered picture')
 
         plt.show()
 
@@ -416,11 +411,7 @@ class EMD2D:
                 tmp1 = self.__getitem__(i)
                 cv2.imwrite(curdir + 'IMF_' + str(i + 1) + '.jpg', tmp1)
 
-        try:
-            cv2.imwrite(curdir + 'Original.jpg', tmp)
-        except Exception:
-            print("Can't save")
-            return False
+        cv2.imwrite(curdir + 'ReConstructed.jpg', tmp)
         return True
 
     def show(self):
