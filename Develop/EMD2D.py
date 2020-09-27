@@ -42,28 +42,6 @@ class EMD2D:
         def checkZeroPad(imfs: np.ndarray):
             return self.NoIMFs - imfs.shape[0]
 
-        def AddDecomposed(newIMF: np.ndarray):
-            newArr = np.array([np.vstack((self.IMFs[0], newIMF[0]))])
-            n = checkZeroPad(newIMF)
-            for i in range(1, min(self.NoIMFs, newIMF.shape[0])):
-                newArr = np.vstack((newArr, np.array([np.vstack((self.IMFs[i], newIMF[i]))])))
-            if n == 0:
-                self.IMFs = newArr.copy()
-                return
-            elif n < 0:
-                for i in range(self.NoIMFs, newIMF.shape[0]):
-                    toAdd = newArr[0].shape[0] - 1
-                    ta = np.array([concatZeros(newIMF[i], toAdd)])
-                    newArr = np.vstack((newArr, ta))
-                self.IMFs = newArr.copy()
-                self.NoIMFs = newIMF.shape[0]
-                return
-
-            for i in range(newIMF.shape[0], self.NoIMFs):
-                ta = np.array([concatZeros(self.IMFs[i], 1)])
-                newArr = np.vstack((newArr, ta))
-            self.IMFs = newArr.copy()
-
         def newAdder(newIMF: np.ndarray):
             n = checkZeroPad(newIMF)
             if n == 0:
