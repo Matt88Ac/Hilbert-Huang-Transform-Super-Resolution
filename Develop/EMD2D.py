@@ -388,7 +388,6 @@ class EMD2D:
 
         else:
             fig, (origin, decomp) = plt.subplots(2, 1, figsize=(20, 20))
-            fig.suptitle('All picture forms')
             origin.imshow(cv2.cvtColor(self.img, cv2.COLOR_BGR2RGB))
             origin.set_title('Original')
             decomp.imshow(self.ForShow(False))
