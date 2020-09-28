@@ -18,16 +18,15 @@ Sharpen3x3 = Sharpen3x3.reshape((3, 3))
 
 
 class EMD2D:
-    IMFs: np.ndarray = np.array([])
-    Rs = None
-    Gs = None
-    Bs = None
-    NoIMFs: int = 0
-
     def __init__(self, image: np.ndarray):
+        self.IMFs: np.ndarray = np.array([])
+        self.Rs = None
+        self.Gs = None
+        self.Bs = None
+        self.NoIMFs: int = 0
+
         if image is None:
             return
-
         self.EMD = EMD
         self.img = image
 
@@ -86,7 +85,6 @@ class EMD2D:
 
                 return decCol
 
-            max_size = 0
             for i in range(img.shape[1]):
                 newImf = decAndFFT(img[:, i])
                 if len(self.IMFs) == 0:
@@ -118,9 +116,11 @@ class EMD2D:
             else:
                 mx = self.MeanFrequency[n].max()
                 mn = self.MeanFrequency[n].min()
+            diffs = (mx - mn) / self.NoIMFs
 
             indicator = np.empty((self.NoIMFs, 2))
-            diffs = (mx - mn) / self.NoIMFs
+            zero_array_ex = np.zeros(self.img.shape[1])
+
             indicator[0] = np.array([mn, mn + diffs])
             for i in range(1, self.NoIMFs):
                 indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
@@ -374,4 +374,3 @@ class EMD2D:
 
 im = cv2.imread('DATA/dog.jpg', 0)
 deco = EMD2D(im)
-deco.show()
