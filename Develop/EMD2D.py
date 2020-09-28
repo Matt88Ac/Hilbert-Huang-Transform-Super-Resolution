@@ -122,7 +122,7 @@ class EMD2D:
                 tmp = np.empty((len(caller), self.shape[0], self.shape[1], self.shape[2]))
             ln = 0
             for i in caller:
-                tmp[ln] = self.__call(i)
+                tmp[ln] = self.__call(i, dtype)
                 ln += 1
             return tmp
 
@@ -421,6 +421,12 @@ class EMD2D:
         cv2.imwrite(curdir + 'ReConstructed.jpg', tmp)
         return True
 
-    def show(self):
-        x0 = fromarray(self.ForShow())
-        x0.show()
+    def show(self, which=None):
+        if not which:
+            x0 = fromarray(self.ForShow())
+            x0.show()
+        else:
+            x0 = fromarray(self(which))
+            x0.show()
+
+
