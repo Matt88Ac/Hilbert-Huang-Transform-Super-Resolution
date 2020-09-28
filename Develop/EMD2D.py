@@ -176,7 +176,7 @@ class EMD2D:
                 tmp = np.empty((len(caller), self.shape[0], self.shape[1], self.shape[2]))
             ln = 0
             for i in caller:
-                tmp[ln] = self.__call(i)
+                tmp[ln] = self.__call(i, dtype=dtype)
                 ln += 1
             return tmp
 
