@@ -122,8 +122,15 @@ class EMD2D:
             zero_array_ex = np.zeros(self.img.shape[1])
 
             indicator[0] = np.array([mn, mn + diffs])
-            for i in range(1, self.NoIMFs):
-                indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
+            imfsFreqs = np.empty((self.NoIMFs, self.IMFs.shape[2]))
+            for i in range(self.NoIMFs):
+                if i != 0:
+                    indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
+                tempo = self.IMFs[i].transpose().copy()
+                tempo = np.fft.fft(tempo).real
+                imfsFreqs[i] = tempo.mean(axis=1)
+
+
 
             return self.IMFs
 
