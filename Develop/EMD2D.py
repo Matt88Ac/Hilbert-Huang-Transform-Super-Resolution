@@ -14,85 +14,140 @@ from General_Scripts import interactiveImread, imread
 class EMD2D:
 
     def __init__(self, image):
-        self.IMFs: np.ndarray = np.array([])
-        self.Rs = None
-        self.Gs = None
-        self.Bs = None
-        self.NoIMFs: int = 0
+        def __init__(self, image: np.ndarray):
+            self.IMFs: np.ndarray = np.array([])
+            self.Rs = None
+            self.Gs = None
+            self.Bs = None
+            self.NoIMFs: int = 0
 
-        if image is None:
-            return
-        self.EMD = EMD
-        if type(image) == Image:
-            self.img = np.array(image)
+            if image is None:
+                return
+            self.EMD = EMD
+            self.img = image
 
-        else:
-            self.img = image.copy()
-        self.shape = self.img.shape
+            self.shape = image.shape
+            self.MeanFrequency = np.array([])
+            self.stdFrequency = self.MeanFrequency.copy()
 
-        self.iter = 0
+            def Run(img: np.ndarray):
+                self.IMFs: np.ndarray = np.array([])
+                self.MeanFrequency = np.array([])
+                self.stdFrequency = self.MeanFrequency.copy()
 
-        def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
-            return self.EMD(colOfImage).decompose()
+                def emd_images_col(colOfImage: np.ndarray):
+                    to_ret = self.EMD(colOfImage).decompose()
+                    return to_ret  # .reshape((to_ret.shape[1], to_ret.shape[0]))
 
-        def concatZeros(row: np.ndarray, howMuch: int) -> np.ndarray:
-            if len(row.shape) == 1:
-                return np.vstack((row, np.zeros((howMuch, row.shape[0]))))
-            return np.vstack((row, np.zeros((howMuch, row.shape[1]))))
+                def fftMyIMF(imf: np.ndarray) -> np.ndarray:
+                    return np.fft.fft(imf).real
 
-        def checkZeroPad(imfs: np.ndarray):
-            return self.NoIMFs - imfs.shape[0]
+                def decAndFFT(colOfImage: np.ndarray) -> np.ndarray:
+                    decCol = emd_images_col(colOfImage)
+                    dft = fftMyIMF(decCol)
+                    self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
+                    self.stdFrequency = np.append(self.stdFrequency, dft.std(axis=1))
+                    return decCol
 
-        def newAdder(newIMF: np.ndarray):
-            n = checkZeroPad(newIMF)
-            if n == 0:
-                self.IMFs = np.concatenate((self.IMFs, newIMF), axis=1)
+                for i in range(img.shape[1]):
+                    newImf = decAndFFT(img[:, i])
+                    if len(self.IMFs) == 0:
+                        self.IMFs = newImf.copy().reshape((newImf.shape[0], 1, newImf.shape[1]))
+                        self.NoIMFs = self.IMFs.shape[0]
+                        continue
 
-            elif n < 0:
-                tempo = np.zeros((abs(n), self.IMFs.shape[1], self.IMFs.shape[2]))
-                self.IMFs = np.concatenate((self.IMFs, tempo), axis=0)
-                self.IMFs = np.concatenate((self.IMFs, newIMF), axis=1)
-                self.NoIMFs = self.IMFs.shape[0]
+                    diff = self.NoIMFs - newImf.shape[0]
+                    newImf = newImf.reshape((newImf.shape[0], 1, newImf.shape[1]))
+                    if diff == 0:
+                        self.IMFs = np.concatenate((self.IMFs, newImf), axis=1)
+                        continue
+
+                    elif diff < 0:
+                        tempo = np.zeros((abs(diff), self.IMFs.shape[1], self.IMFs.shape[2]))
+                        self.IMFs = np.concatenate((self.IMFs, tempo), axis=0)
+                        self.IMFs = np.concatenate((self.IMFs, newImf), axis=1)
+                        self.NoIMFs = self.IMFs.shape[0]
+
+                    else:
+                        tempo = np.zeros((abs(diff), newImf.shape[1], newImf.shape[2]))
+                        tempo = np.concatenate((newImf, tempo))
+                        self.IMFs = np.concatenate((self.IMFs, tempo), axis=1)
+
+                mx = self.MeanFrequency.max()
+                mn = self.MeanFrequency.min()
+
+                diffs = (mx - mn) / self.NoIMFs
+                indicator = np.empty((self.NoIMFs, 2))
+                indicator[0] = np.array([mn, mn + diffs])
+                newImf = None
+
+                for i in range(1, self.NoIMFs):
+                    indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
+
+                # indicator = indicator.reshape(1, indicator.shape[0], indicator.shape[1])
+                mn = mx = None
+                diffs = None
+                diff = None
+
+                newImf = np.zeros(self.IMFs.shape)
+                for i in range(self.img.shape[1]):
+                    tempo: np.ndarray = self.IMFs[:, i, :].copy()
+                    tempo = tempo[np.where(tempo.any(axis=1))[0]].transpose()
+                    imfsFreqs = np.fft.fft(tempo).real.mean(axis=0)
+                    if tempo.shape[1] == self.img.shape[1]:
+                        continue
+                    pass
+
+                    #   finder = np.repeat(indicator, tempo.shape[1], axis=0)
+                    #  tempo = np.where(finder[:, :, 0] <= imfsFreqs < finder[:, :, 1], imfsFreqs)
+                    finder = np.zeros(self.NoIMFs)
+                    for j in range(self.NoIMFs):
+                        finder[j] += ((indicator[j, 0] <= imfsFreqs) & (imfsFreqs <= indicator[j, 1])).sum()
+                        if j == 0:
+                            finder[j] += (imfsFreqs < indicator[j, 0]).sum()
+                        elif j == self.NoIMFs - 1:
+                            finder[j] += (imfsFreqs > indicator[j, 1]).sum()
+                        kkk = (j - 1) % self.NoIMFs
+                        while finder[j] > 1:
+                            if finder[kkk] >= 1:
+                                kkk = (kkk - 1) % self.NoIMFs
+                                continue
+                            finder[kkk] = 1
+                            finder[j] -= 1
+                            kkk = (kkk - 1) % self.NoIMFs
+
+                    finder = finder > 0
+                    newImf[finder, i, :] = tempo.transpose().copy()
+
+                self.IMFs = newImf.copy()
+                return self.IMFs, self.MeanFrequency, self.stdFrequency
+
+            if len(self.shape) == 2:
+                Run(image)
+                errorImf = (self.img - self.reConstruct()).transpose()
+                errorImf = errorImf.reshape((1, errorImf.shape[0], errorImf.shape[1]))
+                self.IMFs = np.concatenate((self.IMFs, errorImf), axis=0)
+                self.NoIMFs += 1
 
             else:
-                tempo = np.zeros((abs(n), newIMF.shape[1], newIMF.shape[2]))
-                tempo = np.concatenate((newIMF, tempo))
-                self.IMFs = np.concatenate((self.IMFs, tempo), axis=1)
+                No = 3
+                self.Rs, m1, s1 = Run(self.img[:, :, 0])
+                No += self.NoIMFs
+                errorImf = self.img[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
+                self.Rs = np.concatenate((self.Rs, errorImf.transpose()[None]))
 
-        def Run(img: np.ndarray) -> np.ndarray:
-            deco = emd_images_col(img[:, 0])
-            self.NoIMFs = deco.shape[0]
-            self.IMFs = deco.copy().reshape((deco.shape[0], 1, deco.shape[1]))
+                self.Gs, m2, s2 = Run(self.img[:, :, 1])
+                No += self.NoIMFs
+                errorImf = self.img[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
+                self.Gs = np.concatenate((self.Gs, errorImf.transpose()[None]))
 
-            for i in range(1, img.shape[1]):
-                deco = emd_images_col(img[:, i])
-                deco = deco.reshape((deco.shape[0], 1, deco.shape[1]))
-                newAdder(deco.copy())
-            return self.IMFs.copy()
+                self.Bs, m3, s3 = Run(self.img[:, :, 2])
+                self.NoIMFs += No
+                errorImf = self.img[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
+                self.Bs = np.concatenate((self.Bs, errorImf.transpose()[None]))
 
-        if len(self.img.shape) == 3:
-            No = 3
-            self.Rs = Run(self.img[:, :, 0])
-            No += self.NoIMFs
-            errorImf = self.img[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
-            self.Rs = np.concatenate((self.Rs, errorImf.transpose()[None]))
-
-            self.Gs = Run(self.img[:, :, 1])
-            No += self.NoIMFs
-            errorImf = self.img[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
-            self.Gs = np.concatenate((self.Gs, errorImf.transpose()[None]))
-
-            self.Bs = Run(self.img[:, :, 2])
-            self.NoIMFs += No
-            errorImf = self.img[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
-            self.Bs = np.concatenate((self.Bs, errorImf.transpose()[None]))
-
-        else:
-            Run(self.img)
-            errorImf = self.img - self.reConstruct()
-            errorImf = errorImf.transpose()
-            self.IMFs = np.concatenate((self.IMFs, errorImf[None]))
-            self.NoIMFs += 1
+                self.stdFrequency = (s1, s2, s3)
+                self.MeanFrequency = (m1, m2, m3)
 
     def __call(self, imf, dtype=None) -> np.ndarray:
         if type(imf) == slice:
