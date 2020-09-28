@@ -12,13 +12,14 @@ from General_Scripts import interactiveImread, imread
 
 
 class EMD2D:
-    IMFs: np.ndarray = np.array([])
-    Rs = None
-    Gs = None
-    Bs = None
-    NoIMFs: int = 0
 
     def __init__(self, image):
+        self.IMFs: np.ndarray = np.array([])
+        self.Rs = None
+        self.Gs = None
+        self.Bs = None
+        self.NoIMFs: int = 0
+
         if image is None:
             return
         self.EMD = EMD
