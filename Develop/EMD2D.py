@@ -557,5 +557,10 @@ class EMD2D:
             x0 = fromarray(self.ForShow())
             x0.show()
         else:
-            x0 = fromarray(self(which))
+            x0 = self(which)
+            if len(self.shape) == 2:
+                x0 = fromarray(x0)
+            else:
+                x0 = cv2.cvtColor(x0, cv2.COLOR_BGR2RGB)
+                x0 = fromarray(x0)
             x0.show()
