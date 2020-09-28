@@ -42,11 +42,6 @@ class EMD2D:
         def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
             return self.EMD(colOfImage).decompose()
 
-        def concatZeros(row: np.ndarray, howMuch: int) -> np.ndarray:
-            if len(row.shape) == 1:
-                return np.vstack((row, np.zeros((howMuch, row.shape[0]))))
-            return np.vstack((row, np.zeros((howMuch, row.shape[1]))))
-
         def checkZeroPad(imfs: np.ndarray):
             return self.NoIMFs - imfs.shape[0]
 
