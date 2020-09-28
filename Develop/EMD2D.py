@@ -141,15 +141,22 @@ class EMD2D:
 
             x1 = dtype == None
             if imf < self.Rs.shape[0]:
-                part1 = self.Rs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + \
-                        x1 * self.Rs[imf, :, :].transpose()
+                if x1:
+                    part1 = self.Rs[imf, :, :].transpose()
+                else:
+                    part1 = self.Rs[imf, :, :].transpose().astype(np.uint8)
 
             if imf < self.Gs.shape[0]:
-                part2 = self.Gs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + \
-                        x1 * self.Gs[imf, :, :].transpose()
+                if x1:
+                    part2 = self.Gs[imf, :, :].transpose()
 
+                else:
+                    part2 = self.Gs[imf, :, :].transpose().astype(np.uint8)
             if imf < self.Bs.shape[0]:
-                part3 = self.Bs[imf, :, :].transpose().astype(np.uint8) * (1 - x1) + x1 * self.Bs[imf, :, :].transpose()
+                if x1:
+                    part3 = self.Bs[imf, :, :].transpose()
+                else:
+                    part3 = self.Bs[imf, :, :].transpose().astype(np.uint8)
 
             return cv2.merge((part1, part2, part3))
 
