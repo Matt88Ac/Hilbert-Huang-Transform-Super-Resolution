@@ -5,6 +5,7 @@ import pandas as pd
 import cv2
 import os
 import time
+from Develop.SRMetrices import PSNR, SSIM, Adapted_Rand_Error, Valid_Of_Info
 
 
 class Run:
@@ -36,12 +37,16 @@ class Run:
     def getFileNames(self):
         return np.array(os.listdir(self.dir), dtype=str)
 
-    def AddToCSV(self, fname: str, resolution, imfs, rmse, timer):
+    def AddToCSV(self, fname: str, resolution, imfs, rmse, timer, psnr, ssim, voi, are):
         to_append = pd.DataFrame({'File Name': [fname],
                                   'Shape': [resolution],
                                   'No IMFs': [imfs],
                                   'Time': [timer],
-                                  'RMSE': [rmse]
+                                  'RMSE': [rmse],
+                                  'PSNR': [psnr],
+                                  'SSIM': [ssim],
+                                  'Variation Of Information': [voi],
+                                  'Adapted Rand Error': [are]
                                   })
         self.table = self.table.append(to_append)
         self.table.to_csv(self.name, index=False)
@@ -66,7 +71,10 @@ class Run:
                 numOfIMFs = picDecomposed.IMFs.shape[0]
                 rmse = RMSE(img, picDecomposed.reConstruct())
 
-                self.AddToCSV(fname=fname, resolution=resolution, rmse=rmse, imfs=numOfIMFs, timer=end - start)
+                self.AddToCSV(fname=fname, resolution=resolution, rmse=rmse, imfs=numOfIMFs, timer=end - start,
+                              psnr=PSNR(img, picDecomposed.reConstruct()), ssim=SSIM(img, picDecomposed.reConstruct()),
+                              voi=Valid_Of_Info(img, picDecomposed.reConstruct()),
+                              are=Adapted_Rand_Error(img, picDecomposed.reConstruct()))
             except ValueError:
                 print("Error occured during process {}".format(name))
 
