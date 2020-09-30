@@ -8,7 +8,6 @@ from PIL.Image import fromarray, Image
 from datetime import datetime
 import os
 from General_Scripts import Sharpen3x3
-from General_Scripts import interactiveImread, imread
 
 
 class EMD2D:
@@ -377,12 +376,18 @@ class EMD2D:
             tmp.Bs = self.Bs.copy()
             tmp.Rs = self.Rs.copy()
 
+        if type(self.MeanFrequency) == tuple:
+            tmp.MeanFrequency = self.MeanFrequency
+            tmp.stdFrequency = self.stdFrequency
+        else:
+            tmp.MeanFrequency = self.MeanFrequency.copy()
+            tmp.stdFrequency = self.stdFrequency.copy()
+
         tmp.NoIMFs = self.NoIMFs
         return tmp
 
     def __repr__(self):
         tmp = self.ForShow(median_filter=False)
-        # tmp = cv2.resize(tmp, (tmp.shape[1] * 5, tmp.shape[0] * 5), interpolation=cv2.INTER_CUBIC)
         if len(self.shape) == 2:
             plt.imshow(tmp, cmap='gray', norm=NoNorm())
         else:
