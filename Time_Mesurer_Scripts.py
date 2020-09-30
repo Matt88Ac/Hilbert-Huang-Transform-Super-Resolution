@@ -72,9 +72,9 @@ class Run:
                 rmse = RMSE(img, picDecomposed.reConstruct())
 
                 self.AddToCSV(fname=fname, resolution=resolution, rmse=rmse, imfs=numOfIMFs, timer=end - start,
-                              psnr=PSNR(img, picDecomposed.reConstruct()), ssim=SSIM(img, picDecomposed.reConstruct()),
-                              voi=Valid_Of_Info(img, picDecomposed.reConstruct()),
-                              are=Adapted_Rand_Error(img, picDecomposed.reConstruct()))
+                              psnr=PSNR(img, picDecomposed.ForShow()), ssim=SSIM(img, picDecomposed.ForShow()),
+                              voi=Valid_Of_Info(img, picDecomposed.ForShow()),
+                              are=Adapted_Rand_Error(img, picDecomposed.ForShow()))
             except ValueError:
                 print("Error occured during process {}".format(name))
 
