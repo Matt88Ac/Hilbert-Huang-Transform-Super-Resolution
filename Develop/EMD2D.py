@@ -173,9 +173,6 @@ class EMD2D:
                 if tempo.shape[1] == self.img.shape[1]:
                     continue
                 pass
-
-                #   finder = np.repeat(indicator, tempo.shape[1], axis=0)
-                #  tempo = np.where(finder[:, :, 0] <= imfsFreqs < finder[:, :, 1], imfsFreqs)
                 finder = np.zeros(self.NoIMFs)
                 for j in range(self.NoIMFs):
                     finder[j] += ((indicator[j, 0] <= imfsFreqs) & (imfsFreqs <= indicator[j, 1])).sum()
@@ -544,6 +541,15 @@ class EMD2D:
         curdir = curdir.replace(curdir[2], '/') + '/Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S")
         os.mkdir(curdir)
         curdir = 'Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S") + '/'
+        np.save('mean_frequency', self.MeanFrequency)
+        np.save('std_frequency', self.stdFrequency)
+        if len(self.shape) == 2:
+            np.save('IMF_array', self.IMFs)
+        else:
+            np.save('IMF_R', self.Rs)
+            np.save('IMF_G', self.Gs)
+            np.save('IMF_B', self.Bs)
+
         if with_imfs:
             for i in range(self.__len__()):
                 tmp1 = self.__getitem__(i)
