@@ -45,14 +45,13 @@ class Run:
                                   'RMSE': [rmse]
                                   })
         self.table = self.table.append(to_append)
-        self.table.to_csv(self.name, index=True)
+        self.table.to_csv(self.name, index=False)
 
     def RunGreys(self):
         toOpen = self.checkExistence()
-        toOpen = toOpen[::-1]
 
         def RMSE(expected: np.ndarray, estimated: np.ndarray):
-            diff = np.sum(((expected - estimated) ** 2).mean())**0.5
+            diff = np.sum(((expected - estimated) ** 2).mean()) ** 0.5
             return diff
 
         for name in toOpen:
@@ -68,8 +67,9 @@ class Run:
                 numOfIMFs = picDecomposed.IMFs.shape[0]
                 rmse = RMSE(img, picDecomposed.reConstruct())
 
-                self.AddToCSV(fname=fname, resolution=resolution, rmse=rmse, imfs=numOfIMFs, timer=end-start)
+                self.AddToCSV(fname=fname, resolution=resolution, rmse=rmse, imfs=numOfIMFs, timer=end - start)
             except ValueError:
-                # TODO: Research into traceback of errors on the "bad images", and check for the conditions required.
-                # Add yet images to the csv file to avoid re-running on bad files.
                 print("Error occured during process {}".format(name))
+
+
+cos = Run('Time_Mesure.csv')
