@@ -84,6 +84,25 @@ def imread(fname, flags=None):
     return temp
 
 
-def get_all_reconstracted(flags=None):
-    
+def get_all_reconstructed(flags=None):
+    path = os.getcwd()
+    path = path.replace(path[2], '/')
+    temp = path.split('/')
+    while temp[len(temp) - 1] != 'Hilbert-Huang-Transform-Super-Resolution':
+        temp.pop()
+    newPath = ''
+
+    for t in temp:
+        newPath += t + '/'
+
+    os.chdir(newPath)
+    newPath += 'Edited Data'
+    pics = []
+    lis = os.listdir(newPath)
+
+    for imfs in lis:
+        pics.append(cv2.imread('Edited Data/' + imfs + '/ReConstructed.jpg', flags=flags).copy())
+
+    os.chdir(path)
+    return pics
 
