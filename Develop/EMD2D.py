@@ -541,14 +541,14 @@ class EMD2D:
         curdir = curdir.replace(curdir[2], '/') + '/Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S")
         os.mkdir(curdir)
         curdir = 'Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S") + '/'
-        np.save('mean_frequency', self.MeanFrequency)
-        np.save('std_frequency', self.stdFrequency)
+        np.save('mean_frequency.npy', self.MeanFrequency)
+        np.save('std_frequency.npy', self.stdFrequency)
         if len(self.shape) == 2:
-            np.save('IMF_array', self.IMFs)
+            np.save('IMF_array.npy', self.IMFs)
         else:
-            np.save('IMF_R', self.Rs)
-            np.save('IMF_G', self.Gs)
-            np.save('IMF_B', self.Bs)
+            np.save('IMF_R.npy', self.Rs)
+            np.save('IMF_G.npy', self.Gs)
+            np.save('IMF_B.npy', self.Bs)
 
         if with_imfs:
             for i in range(self.__len__()):
