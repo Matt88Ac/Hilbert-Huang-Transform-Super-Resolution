@@ -131,6 +131,9 @@ class EMD2D:
                     tempo = np.concatenate((newImf, tempo))
                     self.IMFs = np.concatenate((self.IMFs, tempo), axis=1)
 
+            return self.IMFs, self.MeanFrequency, self.stdFrequency
+
+            """""""""
             mx = self.MeanFrequency.max()
             mn = self.MeanFrequency.min()
 
@@ -145,8 +148,7 @@ class EMD2D:
             mn = mx = None
             diffs = None
             diff = None
-            return self.IMFs, self.MeanFrequency, self.stdFrequency
-            """""""""
+            
             newImf = np.zeros(self.IMFs.shape)
             for i in range(self.img.shape[1]):
                 # tempo: np.ndarray = self.IMFs[:, i, :].copy()
