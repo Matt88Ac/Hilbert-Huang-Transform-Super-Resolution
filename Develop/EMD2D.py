@@ -19,6 +19,8 @@ class EMD2D:
         self.Gs = None
         self.Bs = None
         self.NoIMFs: int = 0
+        self.stdFrequency = np.array([])
+        self.MeanFrequency = np.array([])
 
         if algorithm == 1:
             self.__algorithm1(image)
