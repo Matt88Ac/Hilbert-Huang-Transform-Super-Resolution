@@ -67,7 +67,7 @@ def interactiveImread(flags=None):
     return temp
 
 
-def imread(fname, flags):
+def imread(fname, flags=None):
     path = os.getcwd()
     path = path.replace(path[2], '/')
     temp = path.split('/')
