@@ -67,7 +67,7 @@ class Run:
                 start = time.clock()
                 picDecomposed = self.emd(img)
                 end = time.clock()
-                picDecomposed.save()
+                #picDecomposed.save()
                 numOfIMFs = picDecomposed.IMFs.shape[0]
                 rmse = RMSE(img, picDecomposed.reConstruct())
 
