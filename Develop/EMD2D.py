@@ -13,7 +13,7 @@ from General_Scripts import interactiveImread, imread
 
 class EMD2D:
 
-    def __init__(self, image, algorithm=2):
+    def __init__(self, image):
         self.IMFs: np.ndarray = np.array([])
         self.Rs = None
         self.Gs = None
@@ -33,14 +33,7 @@ class EMD2D:
             self.img = image.copy()
         self.shape = self.img.shape
 
-        self.__algorithm1()
-        return
-
-        if algorithm == 1:
-            self.__algorithm1()
-
-        else:
-            self.__algorithm2()
+        self.__algorithm2()
 
     def __algorithm1(self):
         def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
@@ -80,24 +73,15 @@ class EMD2D:
             No = 3
             self.Rs = Run(self.img[:, :, 0])
             No += self.NoIMFs
-            # errorImf = self.img[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
-            # self.Rs = np.concatenate((self.Rs, errorImf.transpose()[None]))
 
             self.Gs = Run(self.img[:, :, 1])
             No += self.NoIMFs
-            # errorImf = self.img[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
-            # self.Gs = np.concatenate((self.Gs, errorImf.transpose()[None]))
 
             self.Bs = Run(self.img[:, :, 2])
             self.NoIMFs += No
-            # errorImf = self.img[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
-            # self.Bs = np.concatenate((self.Bs, errorImf.transpose()[None]))
 
         else:
             Run(self.img)
-            # errorImf = self.img - self.reConstruct()
-            # errorImf = errorImf.transpose()
-            # self.IMFs = np.concatenate((self.IMFs, errorImf[None]))
             self.NoIMFs += 1
 
     def __algorithm2(self):
@@ -158,7 +142,6 @@ class EMD2D:
             for i in range(1, self.NoIMFs):
                 indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
 
-            # indicator = indicator.reshape(1, indicator.shape[0], indicator.shape[1])
             mn = mx = None
             diffs = None
             diff = None
@@ -200,28 +183,16 @@ class EMD2D:
 
         if len(self.shape) == 2:
             Run(self.img)
-            # errorImf = (self.img - self.reConstruct()).transpose()
-            # errorImf = errorImf.reshape((1, errorImf.shape[0], errorImf.shape[1]))
-            # self.IMFs = np.concatenate((self.IMFs, errorImf), axis=0)
-            # self.NoIMFs += 1
+            self.NoIMFs += 1
 
         else:
             No = 3
             self.Rs, m1, s1 = Run(self.img[:, :, 0])
             No += self.NoIMFs
-            # errorImf = self.img[:, :, 0] - np.sum(self.Rs, axis=0).transpose().astype(np.uint8)
-            # self.Rs = np.concatenate((self.Rs, errorImf.transpose()[None]))
-
             self.Gs, m2, s2 = Run(self.img[:, :, 1])
             No += self.NoIMFs
-            # errorImf = self.img[:, :, 1] - np.sum(self.Gs, axis=0).transpose().astype(np.uint8)
-            # self.Gs = np.concatenate((self.Gs, errorImf.transpose()[None]))
-
             self.Bs, m3, s3 = Run(self.img[:, :, 2])
             self.NoIMFs += No
-            # errorImf = self.img[:, :, 2] - np.sum(self.Bs, axis=0).transpose().astype(np.uint8)
-            # self.Bs = np.concatenate((self.Bs, errorImf.transpose()[None]))
-
             self.stdFrequency = (s1, s2, s3)
             self.MeanFrequency = (m1, m2, m3)
 
