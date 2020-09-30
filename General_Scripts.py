@@ -82,3 +82,8 @@ def imread(fname, flags=None):
     temp = cv2.imread('DATA/' + fname, flags)
     os.chdir(path)
     return temp
+
+
+def get_all_reconstracted(flags=None):
+    
+
