@@ -18,8 +18,6 @@ class EMD2D:
         self.Gs = None
         self.Bs = None
         self.NoIMFs: int = 0
-        self.stdFrequency = np.array([])
-        self.MeanFrequency = np.array([])
         self.iter = 0
         self.EMD = EMD
 
@@ -37,6 +35,12 @@ class EMD2D:
         self.__algorithm2()
 
         self.Error = self.img - self.ForShow()
+        self.varFrequency = np.zeros(self.__len__())
+        self.MeanFrequency = np.array(self.__len__())
+
+        for i in range(len(self)):
+            dtf = np.fft.fft2(self[i])
+            
 
     def __algorithm1(self):
         def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
@@ -90,8 +94,6 @@ class EMD2D:
     def __algorithm2(self):
         def Run(img: np.ndarray):
             self.IMFs = np.array([])
-            self.MeanFrequency = np.array([])
-            self.stdFrequency = self.MeanFrequency.copy()
 
             def emd_images_col(colOfImage: np.ndarray):
                 to_ret = self.EMD(colOfImage).decompose()
@@ -102,9 +104,9 @@ class EMD2D:
 
             def decAndFFT(colOfImage: np.ndarray) -> np.ndarray:
                 decCol = emd_images_col(colOfImage)
-                #dft = fftMyIMF(decCol)
-                #self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
-                #self.stdFrequency = np.append(self.stdFrequency, dft.std(axis=1))
+                # dft = fftMyIMF(decCol)
+                # self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
+                # self.varFrequency = np.append(self.varFrequency, dft.std(axis=1))
                 return decCol
 
             for i in range(img.shape[1]):
@@ -131,57 +133,7 @@ class EMD2D:
                     tempo = np.concatenate((newImf, tempo))
                     self.IMFs = np.concatenate((self.IMFs, tempo), axis=1)
 
-            return self.IMFs, self.MeanFrequency, self.stdFrequency
-
-            """""""""
-            mx = self.MeanFrequency.max()
-            mn = self.MeanFrequency.min()
-
-            diffs = (mx - mn) / self.NoIMFs
-            indicator = np.empty((self.NoIMFs, 2))
-            indicator[0] = np.array([mn, mn + diffs])
-            newImf = None
-
-            for i in range(1, self.NoIMFs):
-                indicator[i] = np.array([indicator[i - 1][1], diffs + indicator[i - 1][1]])
-
-            mn = mx = None
-            diffs = None
-            diff = None
-            
-            newImf = np.zeros(self.IMFs.shape)
-            for i in range(self.img.shape[1]):
-                # tempo: np.ndarray = self.IMFs[:, i, :].copy()
-
-                tempo: np.ndarray = self.IMFs[i].copy()
-                tempo = tempo[np.where(tempo.any(axis=1))[0]].transpose()
-                imfsFreqs = np.fft.fft(tempo).real.mean(axis=0)
-
-                if tempo.shape[1] == self.img.shape[1]:
-                    continue
-                pass
-                finder = np.zeros(self.NoIMFs)
-                for j in range(self.NoIMFs):
-                    finder[j] += ((indicator[j, 0] <= imfsFreqs) & (imfsFreqs <= indicator[j, 1])).sum()
-                    if j == 0:
-                        finder[j] += (imfsFreqs < indicator[j, 0]).sum()
-                    elif j == self.NoIMFs - 1:
-                        finder[j] += (imfsFreqs > indicator[j, 1]).sum()
-                    kkk = (j - 1) % self.NoIMFs
-                    while finder[j] > 1:
-                        if finder[kkk] >= 1:
-                            kkk = (kkk - 1) % self.NoIMFs
-                            continue
-                        finder[kkk] = 1
-                        finder[j] -= 1
-                        kkk = (kkk - 1) % self.NoIMFs
-
-                finder = finder > 0
-                newImf[finder, i, :] = tempo.transpose().copy()
-
-            self.IMFs = newImf.copy()
-            return self.IMFs, self.MeanFrequency, self.stdFrequency
-            """""
+            return self.IMFs
 
         if len(self.shape) == 2:
             Run(self.img)
@@ -189,14 +141,12 @@ class EMD2D:
 
         else:
             No = 3
-            self.Rs, m1, s1 = Run(self.img[:, :, 0])
+            self.Rs = Run(self.img[:, :, 0])
             No += self.NoIMFs
-            self.Gs, m2, s2 = Run(self.img[:, :, 1])
+            self.Gs = Run(self.img[:, :, 1])
             No += self.NoIMFs
-            self.Bs, m3, s3 = Run(self.img[:, :, 2])
+            self.Bs = Run(self.img[:, :, 2])
             self.NoIMFs += No
-            self.stdFrequency = (s1, s2, s3)
-            self.MeanFrequency = (m1, m2, m3)
 
     def __call(self, imf, dtype=None) -> np.ndarray:
         if type(imf) == slice:
@@ -329,9 +279,9 @@ class EMD2D:
             if len(self.shape) == 2:
                 return np.sum(self.IMFs, axis=0).transpose() + self.Error
 
-            R = np.sum(self.Rs, axis=0).transpose()
-            G = np.sum(self.Gs, axis=0).transpose()
-            B = np.sum(self.Bs, axis=0).transpose()
+            R = np.sum(self.Rs, axis=0).transpose() + self.Error[:, :, 2]
+            G = np.sum(self.Gs, axis=0).transpose() + self.Error[:, :, 1]
+            B = np.sum(self.Bs, axis=0).transpose() + self.Error[:, :, 0]
 
             return cv2.merge((R, G, B))
 
@@ -339,9 +289,9 @@ class EMD2D:
             if len(self.shape) == 2:
                 return np.sum(self.IMFs, axis=0).transpose().astype(dtype) + self.Error
 
-            R = np.sum(self.Rs, axis=0).transpose().astype(dtype)
-            G = np.sum(self.Gs, axis=0).transpose().astype(dtype)
-            B = np.sum(self.Bs, axis=0).transpose().astype(dtype)
+            R = np.sum(self.Rs, axis=0).transpose().astype(dtype) + self.Error[:, :, 2]
+            G = np.sum(self.Gs, axis=0).transpose().astype(dtype) + self.Error[:, :, 1]
+            B = np.sum(self.Bs, axis=0).transpose().astype(dtype) + self.Error[:, :, 0]
 
             return cv2.merge((R, G, B))
 
@@ -363,8 +313,8 @@ class EMD2D:
 
     def __len__(self):
         if len(self.shape) == 2:
-            return self.IMFs.shape[0]
-        return max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0])
+            return self.IMFs.shape[0] + 1
+        return max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0]) + 1
 
     def __copy(self):
         tmp = EMD2D(image=None)
@@ -379,10 +329,10 @@ class EMD2D:
 
         if type(self.MeanFrequency) == tuple:
             tmp.MeanFrequency = self.MeanFrequency
-            tmp.stdFrequency = self.stdFrequency
+            tmp.stdFrequency = self.varFrequency
         else:
             tmp.MeanFrequency = self.MeanFrequency.copy()
-            tmp.stdFrequency = self.stdFrequency.copy()
+            tmp.stdFrequency = self.varFrequency.copy()
 
         tmp.NoIMFs = self.NoIMFs
         return tmp
@@ -524,7 +474,7 @@ class EMD2D:
         os.mkdir(curdir)
         curdir = 'Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S") + '/'
         np.save(curdir + 'mean_frequency.npy', self.MeanFrequency)
-        np.save(curdir + 'std_frequency.npy', self.stdFrequency)
+        np.save(curdir + 'var_frequency.npy', self.varFrequency)
         if len(self.shape) == 2:
             np.save(curdir + 'IMF_array.npy', self.IMFs)
         else:
