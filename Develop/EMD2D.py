@@ -30,9 +30,13 @@ class EMD2D:
 
         else:
             self.img = image.copy()
+
+        self.Error = np.zeros(self.img.shape, dtype=np.uint8)
         self.shape = self.img.shape
 
         self.__algorithm2()
+
+        self.Error = self.img - self.ForShow()
 
     def __algorithm1(self):
         def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
@@ -84,9 +88,6 @@ class EMD2D:
             self.NoIMFs += 1
 
     def __algorithm2(self):
-        self.MeanFrequency = np.array([])
-        self.stdFrequency = self.MeanFrequency.copy()
-
         def Run(img: np.ndarray):
             self.IMFs = np.array([])
             self.MeanFrequency = np.array([])
@@ -101,9 +102,9 @@ class EMD2D:
 
             def decAndFFT(colOfImage: np.ndarray) -> np.ndarray:
                 decCol = emd_images_col(colOfImage)
-                dft = fftMyIMF(decCol)
-                self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
-                self.stdFrequency = np.append(self.stdFrequency, dft.std(axis=1))
+                #dft = fftMyIMF(decCol)
+                #self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
+                #self.stdFrequency = np.append(self.stdFrequency, dft.std(axis=1))
                 return decCol
 
             for i in range(img.shape[1]):
@@ -326,7 +327,7 @@ class EMD2D:
     def __assemble(self, dtype=None) -> np.ndarray:
         if dtype is None:
             if len(self.shape) == 2:
-                return np.sum(self.IMFs, axis=0).transpose()
+                return np.sum(self.IMFs, axis=0).transpose() + self.Error
 
             R = np.sum(self.Rs, axis=0).transpose()
             G = np.sum(self.Gs, axis=0).transpose()
@@ -336,7 +337,7 @@ class EMD2D:
 
         else:
             if len(self.shape) == 2:
-                return np.sum(self.IMFs, axis=0).transpose().astype(dtype)
+                return np.sum(self.IMFs, axis=0).transpose().astype(dtype) + self.Error
 
             R = np.sum(self.Rs, axis=0).transpose().astype(dtype)
             G = np.sum(self.Gs, axis=0).transpose().astype(dtype)
