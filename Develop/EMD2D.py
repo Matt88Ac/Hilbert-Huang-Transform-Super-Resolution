@@ -34,7 +34,7 @@ class EMD2D:
 
         self.__algorithm2()
 
-        self.Error = self.img - self.reConstruct().astype(np.uint8)
+        self.Error = self.img - self.reConstruct()
         self.varFrequency = np.zeros(self.__len__())
         self.MeanFrequency = np.zeros(self.__len__())
         for i in range(len(self)):
