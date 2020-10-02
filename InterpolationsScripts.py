@@ -54,14 +54,12 @@ class newRun:
         self.table.to_csv(self.fname, index=False)
 
     @staticmethod
-    def preProcess(name: str, flags=0):
+    def preProcess(name: str, flags=0) -> EMD2D:
         """""""""
         as for start, assuming that all images are grey
         """""
         emd, image = imreadAndEMD(name, flags)
-        image = cv2.resize(image, (image.shape[1]/6, image.shape[0]/6), interpolation=cv2.INTER_LANCZOS4)
-        small_emd = EMD2D(image)
-        return emd, small_emd
+        return emd
 
     @staticmethod
     def upScale_Small_IMF(imf: np.ndarray, to_shape: tuple):
@@ -78,7 +76,7 @@ class newRun:
             diff = ((expected - estimated) ** 2).mean() ** 0.5
             return diff
 
-        minimum_error = 10**10
+        minimum_error = 10 ** 10
         spot = 0
 
         for i in range(up_scaled_imfs.shape[0]):
@@ -89,10 +87,24 @@ class newRun:
         interpolations = ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic']
         return interpolations[spot]
 
+    def doForEach(self, fname: str, flags=0):
+        emd = self.preProcess(fname, flags)
+        shape = (emd.shape[0], emd.shape[1])
+        mean_freq = emd.MeanFrequency
+        var_freq = emd.varFrequency
 
+        for i in range(len(emd)):
+            temp_imf = cv2.resize(emd(i), (shape[0] / 6, shape[1] / 6), interpolation=cv2.INTER_LANCZOS4)
+            up_scaled = self.upScale_Small_IMF(temp_imf, to_shape=shape)
+            interpolation = self.getMinRMSE(emd(i), up_scaled)
 
+            self.AddToCSV(NoIMF='IMF ' + str(i+1), name=fname, resolution=shape, mean_freq=mean_freq[i],
+                          var_freq=var_freq[i], interpolation=interpolation)
 
+    def runner(self):
+        toOpen = self.checkExistence()
+        if self.platform == 'Windows':
+            toOpen = toOpen[::-1]
 
-
-
-
+        for name in toOpen:
+            self.doForEach(fname=name, flags=0)
