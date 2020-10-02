@@ -37,8 +37,6 @@ class EMD2D:
         self.Error = self.img - self.reConstruct().astype(np.uint8)
         self.varFrequency = np.zeros(self.__len__())
         self.MeanFrequency = np.zeros(self.__len__())
-        print(len(self))
-
         for i in range(len(self)):
             if i < len(self):
                 dtf = np.fft.fft2(self[i])
