@@ -509,8 +509,3 @@ class EMD2D:
                 x0 = cv2.cvtColor(x0, cv2.COLOR_BGR2RGB)
                 x0 = fromarray(x0)
             x0.show()
-
-
-img = imread('dog.jpg', 0)
-dec = EMD2D(img)
-dec.save()
