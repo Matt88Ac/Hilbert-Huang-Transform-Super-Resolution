@@ -7,7 +7,7 @@ from matplotlib.colors import NoNorm
 from PIL.Image import fromarray, Image
 from datetime import datetime
 import os
-from General_Scripts import Sharpen3x3
+from General_Scripts import Sharpen3x3, imread
 
 
 class EMD2D:
@@ -34,13 +34,20 @@ class EMD2D:
 
         self.__algorithm2()
 
-        self.Error = self.img - self.ForShow()
+        self.Error = self.img - self.reConstruct().astype(np.uint8)
         self.varFrequency = np.zeros(self.__len__())
-        self.MeanFrequency = np.array(self.__len__())
+        self.MeanFrequency = np.zeros(self.__len__())
+        print(len(self))
 
         for i in range(len(self)):
-            dtf = np.fft.fft2(self[i])
-            
+            if i < self.NoIMFs:
+                dtf = np.fft.fft2(self[i])
+            else:
+                dtf = np.fft.fft2(self.Error)
+
+            r = (dtf.real ** 2 + dtf.imag ** 2) ** 0.5
+            self.MeanFrequency[i] = np.mean(r)
+            self.varFrequency[i] = np.var(r)
 
     def __algorithm1(self):
         def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
@@ -308,7 +315,6 @@ class EMD2D:
         ret = cv2.cvtColor(self.__assemble(dtype=np.uint8), cv2.COLOR_BGR2RGB)
         if median_filter:
             ret = ndimage.median_filter(ret, 3)
-
         return ret
 
     def __len__(self):
@@ -481,6 +487,7 @@ class EMD2D:
             np.save(curdir + 'IMF_R.npy', self.Rs)
             np.save(curdir + 'IMF_G.npy', self.Gs)
             np.save(curdir + 'IMF_B.npy', self.Bs)
+        np.save('IMF_Error.npy', self.Error)
 
         if with_imfs:
             for i in range(self.__len__()):
@@ -502,3 +509,8 @@ class EMD2D:
                 x0 = cv2.cvtColor(x0, cv2.COLOR_BGR2RGB)
                 x0 = fromarray(x0)
             x0.show()
+
+
+img = imread('dog.jpg', 0)
+dec = EMD2D(img)
+dec.save()
