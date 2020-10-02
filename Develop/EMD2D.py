@@ -284,21 +284,21 @@ class EMD2D:
             if len(self.shape) == 2:
                 return np.sum(self.IMFs, axis=0).transpose() + self.Error
 
-            R = np.sum(self.Rs, axis=0).transpose() + self.Error[:, :, 0]
-            G = np.sum(self.Gs, axis=0).transpose() + self.Error[:, :, 1]
-            B = np.sum(self.Bs, axis=0).transpose() + self.Error[:, :, 2]
+            R = np.sum(self.Rs, axis=0).transpose()
+            G = np.sum(self.Gs, axis=0).transpose()
+            B = np.sum(self.Bs, axis=0).transpose()
 
-            return cv2.merge((R, G, B))
+            return cv2.merge((R, G, B)) + self.Error
 
         else:
             if len(self.shape) == 2:
                 return np.sum(self.IMFs, axis=0).transpose().astype(dtype) + self.Error
 
-            R = np.sum(self.Rs, axis=0).transpose().astype(dtype) + self.Error[:, :, 0]
-            G = np.sum(self.Gs, axis=0).transpose().astype(dtype) + self.Error[:, :, 1]
-            B = np.sum(self.Bs, axis=0).transpose().astype(dtype) + self.Error[:, :, 2]
+            R = np.sum(self.Rs, axis=0).transpose().astype(dtype)
+            G = np.sum(self.Gs, axis=0).transpose().astype(dtype)
+            B = np.sum(self.Bs, axis=0).transpose().astype(dtype)
 
-            return cv2.merge((R, G, B))
+            return cv2.merge((R, G, B)) + self.Error
 
     def reConstruct(self) -> np.ndarray:
         return self.__assemble()
@@ -485,7 +485,7 @@ class EMD2D:
             np.save(curdir + 'IMF_R.npy', self.Rs)
             np.save(curdir + 'IMF_G.npy', self.Gs)
             np.save(curdir + 'IMF_B.npy', self.Bs)
-        np.save('IMF_Error.npy', self.Error)
+        np.save(curdir + 'IMF_Error.npy', self.Error)
 
         if with_imfs:
             for i in range(self.__len__()):
