@@ -23,15 +23,15 @@ def Lanczos5(img: np.ndarray, shape: tuple):
 
 
 def Bilinear(img: np.ndarray, shape: tuple):
-    return cv2.resize(img, dsize=(shape[1], shape[0]), interpolation=cv2.INTER_LINEAR)
+    return cv2.resize(img[:, :, 0], dsize=(shape[1], shape[0]), interpolation=cv2.INTER_LINEAR)
 
 
 def Bicubic(img: np.ndarray, shape: tuple):
-    return cv2.resize(img, dsize=(shape[1], shape[0]), interpolation=cv2.INTER_CUBIC)
+    return cv2.resize(img[:, :, 0], dsize=(shape[1], shape[0]), interpolation=cv2.INTER_CUBIC)
 
 
 def Lanczos4(img: np.ndarray, shape: tuple):
-    return cv2.resize(img, dsize=(shape[1], shape[0]), interpolation=cv2.INTER_LANCZOS4)
+    return cv2.resize(img[:, :, 0], dsize=(shape[1], shape[0]), interpolation=cv2.INTER_LANCZOS4)
 
 
 def_interpolations = [Gaussian, Bicubic, Bilinear, Lanczos5, Lanczos3, Lanczos4, MitchelCubic]

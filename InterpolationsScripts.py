@@ -4,7 +4,6 @@ import pandas as pd
 import os
 import numpy as np
 import platform
-from itertools import combinations_with_replacement
 
 
 class newRun:
@@ -14,7 +13,9 @@ class newRun:
         self.fname = fname
         self.table = pd.read_csv(fname, index_col=False)
         self.platform = platform.system()
-        self.file = self.file.drop_duplicates(subset='File Name', keep=False)
+        #self.table = self.file.drop_duplicates(subset='File Name', keep=False)
+
+        self.runner()
 
     def checkExistence(self):
         temp = self.table['File Name'].copy()
@@ -22,9 +23,8 @@ class newRun:
         l1 = self.getFileNames()
         if len(temp) == 0:
             return l1
-        l2 = ['DATA/' + y for y in l1]
-        l1 = np.setdiff1d(l2, temp)
-        return np.array([y[5:] for y in l1], dtype=str)
+        l1 = np.setdiff1d(l1, temp)
+        return np.array(l1, dtype=str)
 
     def getFileNames(self):
         if self.platform == 'Windows':
@@ -66,7 +66,7 @@ class newRun:
         n = len(def_interpolations)
         up_scaled = np.zeros((n, to_shape[0], to_shape[1]), dtype=np.uint8)
         for i in range(n):
-            up_scaled[i] = def_interpolations[i](imf, to_shape)
+            up_scaled[i] = def_interpolations[i](imf.reshape((imf.shape[0], imf.shape[1], 1)), to_shape).reshape(to_shape)
         return up_scaled
 
     @staticmethod
@@ -94,11 +94,11 @@ class newRun:
         var_freq = emd.varFrequency
 
         for i in range(len(emd)):
-            temp_imf = cv2.resize(emd(i), (shape[0] / 6, shape[1] / 6), interpolation=cv2.INTER_LANCZOS4)
+            temp_imf = cv2.resize(emd(i), (int(shape[0] / 6), int(shape[1] / 6)), interpolation=cv2.INTER_LANCZOS4)
             up_scaled = self.upScale_Small_IMF(temp_imf, to_shape=shape)
             interpolation = self.getMinRMSE(emd(i), up_scaled)
 
-            self.AddToCSV(NoIMF='IMF ' + str(i+1), name=fname, resolution=shape, mean_freq=mean_freq[i],
+            self.AddToCSV(NoIMF='IMF ' + str(i + 1), name=fname, resolution=shape, mean_freq=mean_freq[i],
                           var_freq=var_freq[i], interpolation=interpolation)
 
     def runner(self):
@@ -107,4 +107,8 @@ class newRun:
             toOpen = toOpen[::-1]
 
         for name in toOpen:
+            print(name)
             self.doForEach(fname=name, flags=0)
+
+
+k = newRun('interpolations.csv')
