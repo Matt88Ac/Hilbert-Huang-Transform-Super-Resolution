@@ -1,67 +1,37 @@
 import numpy as np
 import cv2
-from scipy import interpolate, signal, ndimage
+from scipy import interpolate
 from tensorflow import image
-from matplotlib.pyplot import imshow
-from PIL import Image
 from Develop.EMD2D import EMD2D
-from General_Scripts import interactiveImread
 
 
-def Gaussian(img: np.ndarray, w: float, h: float):
-    new_Shape = [0, 0]
-    new_Shape[0] = int(w * img.shape[0])
-    new_Shape[1] = int(h * img.shape[1])
+def Gaussian(img: np.ndarray, shape: tuple):
 
-    return image.resize(img, size=new_Shape, method=image.ResizeMethod.GAUSSIAN).numpy().astype(np.uint8)
+    return image.resize(img, size=shape, method=image.ResizeMethod.GAUSSIAN).numpy().astype(np.uint8)
 
 
-def MitchelCubic(img: np.ndarray, w: float, h: float):
-    new_Shape = [0, 0]
-    new_Shape[0] = int(w * img.shape[0])
-    new_Shape[1] = int(h * img.shape[1])
-
-    return image.resize(img, size=new_Shape, method=image.ResizeMethod.MITCHELLCUBIC).numpy().astype(np.uint8)
+def MitchelCubic(img: np.ndarray, shape: tuple):
+    return image.resize(img, size=shape, method=image.ResizeMethod.MITCHELLCUBIC).numpy().astype(np.uint8)
 
 
-def Lanczos3(img: np.ndarray, w: float, h: float):
-    new_Shape = [0, 0]
-    new_Shape[0] = int(w * img.shape[0])
-    new_Shape[1] = int(h * img.shape[1])
-
-    return image.resize(img, size=new_Shape, method=image.ResizeMethod.LANCZOS3).numpy().astype(np.uint8)
+def Lanczos3(img: np.ndarray, shape: tuple):
+    return image.resize(img, size=shape, method=image.ResizeMethod.LANCZOS3).numpy().astype(np.uint8)
 
 
-def Lanczos5(img: np.ndarray, w: float, h: float):
-    new_Shape = [0, 0]
-    new_Shape[0] = int(w * img.shape[0])
-    new_Shape[1] = int(h * img.shape[1])
-
-    return image.resize(img, size=new_Shape, method=image.ResizeMethod.LANCZOS5).numpy().astype(np.uint8)
+def Lanczos5(img: np.ndarray, shape: tuple):
+    return image.resize(img, size=shape, method=image.ResizeMethod.LANCZOS5).numpy().astype(np.uint8)
 
 
-def Bilinear(img: np.ndarray, w: float, h: float):
-    new_Shape = [0, 0]
-    new_Shape[0] = int(w * img.shape[0])
-    new_Shape[1] = int(h * img.shape[1])
-
-    return cv2.resize(img, dsize=tuple(new_Shape), interpolation=cv2.INTER_LINEAR)
+def Bilinear(img: np.ndarray, shape: tuple):
+    return cv2.resize(img, dsize=(shape[1], shape[0]), interpolation=cv2.INTER_LINEAR)
 
 
-def Bicubic(img: np.ndarray, w: float, h: float):
-    new_Shape = [0, 0]
-    new_Shape[0] = int(w * img.shape[0])
-    new_Shape[1] = int(h * img.shape[1])
-
-    return cv2.resize(img, dsize=tuple(new_Shape), interpolation=cv2.INTER_CUBIC)
+def Bicubic(img: np.ndarray, shape: tuple):
+    return cv2.resize(img, dsize=(shape[1], shape[0]), interpolation=cv2.INTER_CUBIC)
 
 
-def Lanczos4(img: np.ndarray, w: float, h: float):
-    new_Shape = [0, 0]
-    new_Shape[0] = int(w * img.shape[0])
-    new_Shape[1] = int(h * img.shape[1])
-
-    return cv2.resize(img, dsize=tuple(new_Shape), interpolation=cv2.INTER_LANCZOS4)
+def Lanczos4(img: np.ndarray, shape: tuple):
+    return cv2.resize(img, dsize=(shape[1], shape[0]), interpolation=cv2.INTER_LANCZOS4)
 
 
 def_interpolations = [Gaussian, Bicubic, Bilinear, Lanczos5, Lanczos3, Lanczos4, MitchelCubic]

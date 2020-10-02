@@ -9,7 +9,9 @@
       <w>imread</w>
       <w>lanczos</w>
       <w>ndarray</w>
+      <w>psnr</w>
       <w>rmse</w>
+      <w>ssim</w>
     </words>
   </dictionary>
 </component>
