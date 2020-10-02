@@ -40,7 +40,7 @@ class EMD2D:
         print(len(self))
 
         for i in range(len(self)):
-            if i < self.NoIMFs:
+            if i < len(self):
                 dtf = np.fft.fft2(self[i])
             else:
                 dtf = np.fft.fft2(self.Error)
