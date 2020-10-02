@@ -284,9 +284,9 @@ class EMD2D:
             if len(self.shape) == 2:
                 return np.sum(self.IMFs, axis=0).transpose() + self.Error
 
-            R = np.sum(self.Rs, axis=0).transpose() + self.Error[:, :, 2]
+            R = np.sum(self.Rs, axis=0).transpose() + self.Error[:, :, 0]
             G = np.sum(self.Gs, axis=0).transpose() + self.Error[:, :, 1]
-            B = np.sum(self.Bs, axis=0).transpose() + self.Error[:, :, 0]
+            B = np.sum(self.Bs, axis=0).transpose() + self.Error[:, :, 2]
 
             return cv2.merge((R, G, B))
 
@@ -294,9 +294,9 @@ class EMD2D:
             if len(self.shape) == 2:
                 return np.sum(self.IMFs, axis=0).transpose().astype(dtype) + self.Error
 
-            R = np.sum(self.Rs, axis=0).transpose().astype(dtype) + self.Error[:, :, 2]
+            R = np.sum(self.Rs, axis=0).transpose().astype(dtype) + self.Error[:, :, 0]
             G = np.sum(self.Gs, axis=0).transpose().astype(dtype) + self.Error[:, :, 1]
-            B = np.sum(self.Bs, axis=0).transpose().astype(dtype) + self.Error[:, :, 0]
+            B = np.sum(self.Bs, axis=0).transpose().astype(dtype) + self.Error[:, :, 2]
 
             return cv2.merge((R, G, B))
 
