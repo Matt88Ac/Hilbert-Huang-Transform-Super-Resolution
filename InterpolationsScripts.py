@@ -13,7 +13,7 @@ class newRun:
         self.fname = fname
         self.table = pd.read_csv(fname, index_col=False)
         self.platform = platform.system()
-        #self.table = self.file.drop_duplicates(subset='File Name', keep=False)
+        # self.table = self.file.drop_duplicates(subset='File Name', keep=False)
 
         self.runner()
 
@@ -66,7 +66,8 @@ class newRun:
         n = len(def_interpolations)
         up_scaled = np.zeros((n, to_shape[0], to_shape[1]), dtype=np.uint8)
         for i in range(n):
-            up_scaled[i] = def_interpolations[i](imf.reshape((imf.shape[0], imf.shape[1], 1)), to_shape).reshape(to_shape)
+            up_scaled[i] = def_interpolations[i](imf.reshape((imf.shape[0], imf.shape[1], 1)), to_shape).reshape(
+                to_shape)
         return up_scaled
 
     @staticmethod
