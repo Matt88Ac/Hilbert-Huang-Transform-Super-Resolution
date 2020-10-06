@@ -1,7 +1,7 @@
 import numpy as np
 from pyhht.emd import EmpiricalModeDecomposition as EMD
 import cv2
-from scipy import ndimage, signal
+from scipy import ndimage, signal, stats
 from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
 from PIL.Image import fromarray, Image
@@ -37,6 +37,16 @@ class EMD2D:
         self.Error = self.img - self.reConstruct()
         self.varFrequency = np.zeros(self.__len__())
         self.MeanFrequency = np.zeros(self.__len__())
+        self.skewnessFreq = np.zeros(self.__len__())
+        self.kurtosisFreq = np.zeros(self.__len__())
+        self.MedianFreq = np.zeros(self.__len__())
+
+        self.meanColor = self.varFrequency.copy()
+        self.varColor = self.meanColor.copy()
+        self.skewnessColor = self.meanColor.copy()
+        self.kurtosisColor = self.meanColor.copy()
+        self.medianColor = self.varFrequency.copy()
+
         for i in range(len(self)):
             if i < len(self):
                 dtf = np.fft.fft2(self[i])
@@ -46,6 +56,15 @@ class EMD2D:
             r = (dtf.real ** 2 + dtf.imag ** 2) ** 0.5
             self.MeanFrequency[i] = np.mean(r)
             self.varFrequency[i] = np.var(r)
+            self.skewnessFreq[i] = stats.moment(r, 3, axis=None)
+            self.kurtosisFreq[i] = stats.moment(r, 4, axis=None)
+            self.MedianFreq[i] = np.median(r)
+
+            self.meanColor[i] = self[i].mean()
+            self.varColor[i] = self[i].var()
+            self.skewnessColor[i] = stats.moment(self[i], 3, axis=None)
+            self.kurtosisColor[i] = stats.moment(self[i], 4, axis=None)
+            self.medianColor[i] = np.median(self[i])
 
     def __algorithm1(self):
         def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
