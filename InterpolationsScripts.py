@@ -37,7 +37,8 @@ class newRun:
             self.dir = dirc
             return np.array(os.listdir(dirc), dtype=str)
 
-    def AddToCSV(self, NoIMF, name, resolution, interpolation, mean_freq, var_freq):
+    def AddToCSV(self, NoIMF, name, resolution, interpolation, mean_freq, var_freq, skew_freq, med_freq, kurt_freq,
+                 mean_color, var_color, skew_color, med_color, kurt_color):
         rows = resolution[0]
         cols = resolution[1]
         channel = len(resolution)
@@ -46,6 +47,14 @@ class newRun:
                                   'Interpolation Method': [interpolation],
                                   'Mean Frequency': [mean_freq],
                                   'Variance Frequency': [var_freq],
+                                  'Median Frequency': [med_freq],
+                                  'Skewness Frequency': [skew_freq],
+                                  'Kurtosis Frequency': [kurt_freq],
+                                  'Mean Color': [mean_color],
+                                  'Variance Color': [var_color],
+                                  'Median Color': [med_color],
+                                  'Skewness Color': [skew_color],
+                                  'Kurtosis Color': [kurt_color],
                                   'Rows': [rows],
                                   'Cols': [cols],
                                   'Channels': [channel]
@@ -100,7 +109,10 @@ class newRun:
             interpolation = self.getMinRMSE(emd(i), up_scaled)
 
             self.AddToCSV(NoIMF='IMF ' + str(i + 1), name=fname, resolution=shape, mean_freq=mean_freq[i],
-                          var_freq=var_freq[i], interpolation=interpolation)
+                          var_freq=var_freq[i], interpolation=interpolation, mean_color=emd.meanColor[i],
+                          med_freq=emd.MedianFreq[i], skew_freq=emd.skewnessFreq[i], skew_color=emd.skewnessColor[i],
+                          kurt_freq=emd.kurtosisFreq[i], kurt_color=emd.kurtosisColor[i], var_color=emd.varColor[i],
+                          med_color=emd.medianColor[i])
 
     def runner(self):
         toOpen = self.checkExistence()
