@@ -1,13 +1,14 @@
 import numpy as np
 from pyhht.emd import EmpiricalModeDecomposition as EMD
 import cv2
-from scipy import ndimage, signal, stats
+from scipy import ndimage, signal, stats, interpolate
 from matplotlib import pyplot as plt
 from matplotlib.colors import NoNorm
 from PIL.Image import fromarray, Image
 from datetime import datetime
 import os
 from General_Scripts import Sharpen3x3, imread
+from skimage.morphology import local_minima, local_maxima
 
 
 class EMD2D:
@@ -66,50 +67,176 @@ class EMD2D:
             self.kurtosisColor[i] = stats.moment(self[i], 4, axis=None)
             self.medianColor[i] = np.median(self[i])
 
+        self.threshold = 0.5
+        self.no_iterations = 15
+
     def __algorithm1(self):
-        def emd_images_col(colOfImage: np.ndarray) -> np.ndarray:
-            return self.EMD(colOfImage).decompose()
 
-        def checkZeroPad(imfs: np.ndarray):
-            return self.NoIMFs - imfs.shape[0]
+        def getMinMax(matrix: np.ndarray):
+            """
+            Finds extrema, both mininma and maxima, based on local maximum filter.
+            Returns extrema in form of two rows, where the first and second are
+            positions of x and y, respectively.
 
-        def newAdder(newIMF: np.ndarray):
-            n = checkZeroPad(newIMF)
-            if n == 0:
-                self.IMFs = np.concatenate((self.IMFs, newIMF), axis=1)
+            Parameters
+            ----------
+            image : numpy 2D array
+                Monochromatic image or any 2D array.
 
-            elif n < 0:
-                tempo = np.zeros((abs(n), self.IMFs.shape[1], self.IMFs.shape[2]))
-                self.IMFs = np.concatenate((self.IMFs, tempo), axis=0)
-                self.IMFs = np.concatenate((self.IMFs, newIMF), axis=1)
-                self.NoIMFs = self.IMFs.shape[0]
+            Returns
+            -------
+            min_peaks : numpy array
+                Minima positions.
+            max_peaks : numpy array
+                Maxima positions.
+            """
 
-            else:
-                tempo = np.zeros((abs(n), newIMF.shape[1], newIMF.shape[2]))
-                tempo = np.concatenate((newIMF, tempo))
-                self.IMFs = np.concatenate((self.IMFs, tempo), axis=1)
+            # define an 3x3 neighborhood
+            neighborhood = ndimage.generate_binary_structure(2, 2)
+
+            # apply the local maximum filter; all pixel of maximal value
+            # in their neighborhood are set to 1
+            local_min = ndimage.maximum_filter(-matrix, footprint=neighborhood) == -matrix
+            local_max = ndimage.maximum_filter(matrix, footprint=neighborhood) == matrix
+
+            # can't distinguish between background zero and filter zero
+            background = (matrix == 0)
+
+            # appear along the bg border (artifact of the local max filter)
+            eroded_background = ndimage.binary_erosion(background,
+                                                       structure=neighborhood,
+                                                       border_value=1)
+
+            # we obtain the final mask, containing only peaks,
+            # by removing the background from the local_max mask (xor operation)
+            min_peaks = local_min ^ eroded_background
+            max_peaks = local_max ^ eroded_background
+
+            min_peaks = local_min
+            max_peaks = local_max
+            min_peaks[[0, -1], :] = False
+            min_peaks[:, [0, -1]] = False
+            max_peaks[[0, -1], :] = False
+            max_peaks[:, [0, -1]] = False
+
+            min_peaks = np.nonzero(min_peaks)
+            max_peaks = np.nonzero(max_peaks)
+
+            return min_peaks, max_peaks
+
+        def getSplines1(matrix: np.ndarray):
+
+            def getMin():
+                fp = np.ones((3, 3))
+
+                ind_min = local_minima(image=matrix, selem=fp, connectivity=False, allow_borders=False, indices=True)
+                val_min = local_minima(image=matrix, selem=fp, connectivity=False, allow_borders=False)
+                minSpline = interpolate.Rbf(ind_min[0], ind_min[1], matrix[val_min], function='thin_plate')
+
+                xi = np.array(range(matrix.shape[0]))
+                yi = np.array(range(matrix.shape[1]))
+                xi, yi = np.meshgrid(xi, yi)
+
+                return minSpline(xi, yi).transpose()
+
+            def getMax():
+                fp = np.ones((3, 3))
+
+                ind_max = local_maxima(image=matrix, selem=fp, connectivity=False, allow_borders=False, indices=True)
+                val_max = local_maxima(image=matrix, selem=fp, connectivity=False, allow_borders=False)
+                maxSpline = interpolate.Rbf(ind_max[0], ind_max[1], matrix[val_max], function='thin_plate')
+
+                xi = np.array(range(matrix.shape[0]))
+                yi = np.array(range(matrix.shape[1]))
+                xi, yi = np.meshgrid(xi, yi)
+
+                return maxSpline(xi, yi).transpose()
+
+            return getMin(), getMax()
+
+        def getSplines2(matrix: np.ndarray):
+            mins, maxs = getMinMax(matrix)
+            minsVal = matrix[mins]
+            maxsVal = matrix[maxs]
+
+            def getUpper():
+                maxSpline = interpolate.Rbf(maxs[0], maxs[1], maxsVal, function='thin_plate')
+                xi = np.array(range(matrix.shape[0]))
+                yi = np.array(range(matrix.shape[1]))
+                xi, yi = np.meshgrid(xi, yi)
+
+                return maxSpline(xi, yi).transpose()
+
+            def getLower():
+                minSpline = interpolate.Rbf(mins[0], mins[1], minsVal, function='thin_plate')
+                xi = np.array(range(matrix.shape[0]))
+                yi = np.array(range(matrix.shape[1]))
+                xi, yi = np.meshgrid(xi, yi)
+
+                return minSpline(xi, yi).transpose()
+
+            return getLower(), getUpper()
+
+        def Check_IMF(candidate: np.ndarray, prev: np.ndarray, mean: np.ndarray):
+
+            if np.mean(np.abs(candidate)) < 0.5:
+                return True
+
+            if np.allclose(candidate, prev, 0.5):
+                return True
+
+            if np.all(np.abs(mean - mean.mean()) < 0.5):
+                return True
+
+            if np.all(np.abs(mean) < 0.5):
+                return True
+
+            return False
+
+        def Sift(matrix: np.ndarray):
+            lower, upper = getSplines2(matrix)
+            mean = (lower + upper) / 2
+
+            new_imf = matrix.copy() - mean
+            prev = matrix.copy()
+            i = 0
+            while not Check_IMF(new_imf, prev, mean):
+                if i == 15:
+                    print('got to limit')
+                    break
+                prev = new_imf.copy()
+                lower, upper = getSplines2(new_imf)
+                mean = (lower + upper) / 2
+                new_imf = new_imf - mean
+                i += 1
+
+            return new_imf
 
         def Run(img: np.ndarray) -> np.ndarray:
-            deco = emd_images_col(img[:, 0])
-            self.NoIMFs = deco.shape[0]
-            self.IMFs = deco.copy().reshape((deco.shape[0], 1, deco.shape[1]))
+            self.IMFs = Sift(img)
+            self.IMFs = self.IMFs.reshape((1, self.shape[0], self.shape[1]))
+            i = 1
+            self.NoIMFs = 1
+            while not np.allclose(self.IMFs[i - 1], 0):
+                self.save()
+                if i == 1:
+                    temp_IMF = Sift(img - self.IMFs[0])
+                    temp_IMF = temp_IMF.reshape((1, self.shape[0], self.shape[1]))
+                else:
+                    temp_IMF = Sift(self.IMFs[i - 2] - self.IMFs[i - 1])
+                    temp_IMF = temp_IMF.reshape((1, self.shape[0], self.shape[1]))
 
-            for i in range(1, img.shape[1]):
-                deco = emd_images_col(img[:, i])
-                deco = deco.reshape((deco.shape[0], 1, deco.shape[1]))
-                newAdder(deco.copy())
+                self.IMFs = np.concatenate((self.IMFs, temp_IMF), axis=0)
+                i += 1
+                self.NoIMFs += 1
+            self.save()
             return self.IMFs.copy()
 
         if len(self.img.shape) == 3:
-            No = 3
             self.Rs = Run(self.img[:, :, 0])
-            No += self.NoIMFs
-
             self.Gs = Run(self.img[:, :, 1])
-            No += self.NoIMFs
-
             self.Bs = Run(self.img[:, :, 2])
-            self.NoIMFs += No
+            self.NoIMFs = max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0]) + 1
 
         else:
             Run(self.img)
@@ -164,13 +291,11 @@ class EMD2D:
             self.NoIMFs += 1
 
         else:
-            No = 3
             self.Rs = Run(self.img[:, :, 0])
-            No += self.NoIMFs
             self.Gs = Run(self.img[:, :, 1])
-            No += self.NoIMFs
             self.Bs = Run(self.img[:, :, 2])
-            self.NoIMFs += No
+
+            self.NoIMFs = max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0]) + 1
 
     def __call(self, imf, dtype=None) -> np.ndarray:
         if type(imf) == slice:
@@ -339,8 +464,8 @@ class EMD2D:
 
     def __len__(self):
         if len(self.shape) == 2:
-            return self.IMFs.shape[0] + 1
-        return max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0]) + 1
+            return self.IMFs.shape[0]
+        return max(self.Rs.shape[0], self.Bs.shape[0], self.Gs.shape[0])
 
     def __copy(self):
         tmp = EMD2D(image=None)
@@ -363,6 +488,7 @@ class EMD2D:
         tmp.NoIMFs = self.NoIMFs
         return tmp
 
+    """""""""
     def __repr__(self):
         tmp = self.ForShow(median_filter=False)
         if len(self.shape) == 2:
@@ -371,6 +497,7 @@ class EMD2D:
             plt.imshow(tmp)
         plt.show()
         return ""
+    """
 
     def __cmp__(self, other):
         other1 = other
@@ -499,6 +626,7 @@ class EMD2D:
         curdir = curdir.replace(curdir[2], '/') + '/Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S")
         os.mkdir(curdir)
         curdir = 'Edited Data/' + now.strftime("%d-%m-%Y%H-%M-%S") + '/'
+        """""""""
         np.save(curdir + 'mean_frequency.npy', self.MeanFrequency)
         np.save(curdir + 'var_frequency.npy', self.varFrequency)
         if len(self.shape) == 2:
@@ -508,9 +636,10 @@ class EMD2D:
             np.save(curdir + 'IMF_G.npy', self.Gs)
             np.save(curdir + 'IMF_B.npy', self.Bs)
         np.save(curdir + 'IMF_Error.npy', self.Error)
+        """
 
         if with_imfs:
-            for i in range(self.__len__()):
+            for i in range(len(self)):
                 tmp1 = self.__getitem__(i)
                 cv2.imwrite(curdir + 'IMF_' + str(i + 1) + '.jpg', tmp1)
 
