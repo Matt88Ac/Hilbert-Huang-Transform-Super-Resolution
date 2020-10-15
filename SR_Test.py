@@ -1,4 +1,4 @@
-from Develop.Interpolations import def_interpolations, imreadAndEMD, cv2
+from Develop.Interpolations import def_interpolations, cv2
 from Develop.EMD2D import EMD2D
 import pandas as pd
 import os
@@ -58,10 +58,11 @@ class Run:
 
     def runner(self):
         toOpen = self.checkExistence()
-        interpolations = ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic']
+        interpolations = np.array(['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic'])
 
         for name in toOpen:
-            image = cv2.imread(name, 0)
+            image = cv2.imread('DATA/' + name, 0)
+            print(name)
             rows, cols = image.shape
             new_image = cv2.resize(image, (int(cols / 6), int(rows / 6)), interpolation=cv2.INTER_LANCZOS4)
             decomposed = EMD2D(new_image)
@@ -69,22 +70,44 @@ class Run:
 
             upScaled = np.zeros(7)
 
+            new_image = new_image.reshape((new_image.shape[0], new_image.shape[1], 1))
             for i in range(7):
-                upScaled[i] = self.__RMSE(image, def_interpolations(i)(new_image, (rows, cols)))
+                temp = def_interpolations[i](new_image, (rows, cols))
+                if len(temp.shape) == 3:
+                    upScaled[i] = self.__RMSE(image, temp[:, :, 0])
+                else:
+                    upScaled[i] = self.__RMSE(image, temp)
 
             new_one = np.zeros(image.shape)
 
             for i in range(len(decomposed)):
-                data = [name, 'IMF ' + str(i+1), decomposed.MeanFrequency[i], decomposed.varFrequency[i],
+
+                data = [[0, decomposed.MeanFrequency[i], decomposed.varFrequency[i],
                         rows, cols, decomposed.MedianFreq[i], decomposed.skewnessFreq[i], decomposed.kurtosisFreq[i],
                         decomposed.meanColor[i], decomposed.varColor[i], decomposed.medianColor[i],
-                        decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]
+                        decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]]
 
                 interpolation = self.model.predict(data)
 
+                for j in range(7):
+                    if interpolation == interpolations[j]:
+                        temp = def_interpolations[j](decomposed(i).reshape((decomposed.shape[0], decomposed.shape[1], 1)), (rows, cols))
+                        if len(temp.shape) == 3:
+                            temp = temp[:, :, 0]
+                        new_one += temp
+                        break
 
+            hht_rmse = self.__RMSE(image, new_one)
 
+            best = min(upScaled.min(), hht_rmse)
 
+            if best == hht_rmse:
+                best = 'HHT'
+            else:
+                best = interpolations[upScaled == best]
+
+            self.AddToCSV(NoIMF=noIMfs, name=name, resolution=image.shape, Bicubic=upScaled[1], Gaussian=upScaled[0],
+                          Bilinear=upScaled[2],  Best=best, Lanczos=upScaled[5], HHT2D=hht_rmse)
 
 
 
