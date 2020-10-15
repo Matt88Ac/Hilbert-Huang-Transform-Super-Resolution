@@ -61,12 +61,11 @@ class Run:
         for name in toOpen:
             image = cv2.imread('DATA/' + name, 0)
             print(name)
-            if name == '00903.jpg':
-                continue
             rows, cols = image.shape
             new_image = cv2.resize(image, (int(cols / 6), int(rows / 6)), interpolation=cv2.INTER_LANCZOS4)
             decomposed = EMD2D(new_image)
             noIMfs = len(decomposed)
+            print('done EMD')
 
             upScaled = np.zeros((7, rows, cols))
 
