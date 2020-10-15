@@ -309,3 +309,8 @@ File Name,No Cols,No Rows,No IMFs,Best RMSE,Best SSIM,Best PSNR
 01220.jpg,276,183,4,Bilinear,HHT,HHT
 01221.jpg,320,240,4,Bilinear,HHT,HHT
 01222.jpg,640,480,6,Bilinear,HHT,HHT
+01223.jpg,1024,768,7,Bilinear,HHT,HHT
+01224.jpg,1600,1068,8,Bilinear,HHT,HHT
+01225.jpg,640,480,6,Bilinear,HHT,HHT
+01226.jpg,640,480,6,Bilinear,HHT,HHT
+01227.jpg,750,500,6,Bilinear,HHT,HHT
