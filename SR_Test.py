@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import numpy as np
 import pickle
-import joblib
+from Develop.SRMetrices import PSNR, SSIM, Normalized_RMSE
 
 
 class Run:
@@ -16,7 +16,7 @@ class Run:
         names = pd.read_csv('interpolations.csv')
         names = names['File Name'].unique()
 
-        self.files = names
+        self.files = np.append(names, self.table['File Name'])
         self.model = pickle.load(open('random_forest_model.pkl', 'rb'))
 
         self.runner()
@@ -36,19 +36,16 @@ class Run:
         self.dir = dirc
         return np.array(os.listdir(dirc), dtype=str)
 
-    def AddToCSV(self, NoIMF, name, resolution, HHT2D, Bicubic, Lanczos, Gaussian, Bilinear, Best):
+    def AddToCSV(self, NoIMF, name, resolution, rmse, psnr, ssim):
         rows = resolution[0]
         cols = resolution[1]
         to_append = pd.DataFrame({'File Name': [name],
                                   'No IMFs': [NoIMF],
-                                  'RMSE - HHT2D': [HHT2D],
-                                  'RMSE - Bicubic': [Bicubic],
-                                  'RMSE - Lanczos': [Lanczos],
-                                  'RMSE - Gaussian': [Gaussian],
-                                  'RMSE - Bilinear': [Bilinear],
-                                  'Best Interpolation Method': [Best],
                                   'No Rows': [rows],
                                   'No Cols': [cols],
+                                  'Best RMSE': [rmse],
+                                  'Best SSIM': [ssim],
+                                  'Best PSNR': [psnr]
                                   })
         self.table = self.table.append(to_append)
         self.table.to_csv(self.name, index=False)
@@ -58,57 +55,76 @@ class Run:
 
     def runner(self):
         toOpen = self.checkExistence()
-        interpolations = np.array(['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic'])
+        interpolations = np.array(
+            ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic'])
 
         for name in toOpen:
             image = cv2.imread('DATA/' + name, 0)
             print(name)
+            if name == '00903.jpg':
+                continue
             rows, cols = image.shape
             new_image = cv2.resize(image, (int(cols / 6), int(rows / 6)), interpolation=cv2.INTER_LANCZOS4)
             decomposed = EMD2D(new_image)
             noIMfs = len(decomposed)
 
-            upScaled = np.zeros(7)
+            upScaled = np.zeros((7, rows, cols))
 
             new_image = new_image.reshape((new_image.shape[0], new_image.shape[1], 1))
             for i in range(7):
                 temp = def_interpolations[i](new_image, (rows, cols))
                 if len(temp.shape) == 3:
-                    upScaled[i] = self.__RMSE(image, temp[:, :, 0])
-                else:
-                    upScaled[i] = self.__RMSE(image, temp)
+                    temp = temp[:, :, 0]
+                upScaled[i] = temp.copy()
 
             new_one = np.zeros(image.shape)
 
             for i in range(len(decomposed)):
 
                 data = [[0, decomposed.MeanFrequency[i], decomposed.varFrequency[i],
-                        rows, cols, decomposed.MedianFreq[i], decomposed.skewnessFreq[i], decomposed.kurtosisFreq[i],
-                        decomposed.meanColor[i], decomposed.varColor[i], decomposed.medianColor[i],
-                        decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]]
+                         rows, cols, decomposed.MedianFreq[i], decomposed.skewnessFreq[i], decomposed.kurtosisFreq[i],
+                         decomposed.meanColor[i], decomposed.varColor[i], decomposed.medianColor[i],
+                         decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]]
 
                 interpolation = self.model.predict(data)
 
                 for j in range(7):
                     if interpolation == interpolations[j]:
-                        temp = def_interpolations[j](decomposed(i).reshape((decomposed.shape[0], decomposed.shape[1], 1)), (rows, cols))
+                        temp = def_interpolations[j](
+                            decomposed(i).reshape((decomposed.shape[0], decomposed.shape[1], 1)), (rows, cols))
                         if len(temp.shape) == 3:
                             temp = temp[:, :, 0]
                         new_one += temp
                         break
 
-            hht_rmse = self.__RMSE(image, new_one)
+            hht_rmse = Normalized_RMSE(image, new_one)
+            hht_psnr = PSNR(image, new_one)
+            hht_ssim = SSIM(image, new_one)
 
-            best = min(upScaled.min(), hht_rmse)
+            ims_psnr = np.array([PSNR(image, upScaled[i]) for i in range(7)])
+            ims_ssim = np.array([SSIM(image, upScaled[i]) for i in range(7)])
+            ims_rmse = np.array([Normalized_RMSE(image, upScaled[i]) for i in range(7)])
 
-            if best == hht_rmse:
-                best = 'HHT'
+            b1 = min(ims_psnr.min(), hht_psnr)
+            b2 = min(ims_ssim.min(), hht_ssim)
+            b3 = min(ims_rmse.min(), hht_rmse)
+
+            if b1 == hht_psnr:
+                b1 = 'HHT'
             else:
-                best = interpolations[upScaled == best]
+                b1 = interpolations[b1 == ims_psnr]
 
-            self.AddToCSV(NoIMF=noIMfs, name=name, resolution=image.shape, Bicubic=upScaled[1], Gaussian=upScaled[0],
-                          Bilinear=upScaled[2],  Best=best, Lanczos=upScaled[5], HHT2D=hht_rmse)
+            if b2 == hht_ssim:
+                b2 = 'HHT'
+            else:
+                b2 = interpolations[ims_ssim == b2]
 
+            if b3 == hht_rmse:
+                b3 = 'HHT'
+            else:
+                b3 = interpolations[ims_rmse == b3]
+
+            self.AddToCSV(NoIMF=noIMfs, name=name, resolution=image.shape, rmse=b3, psnr=b1, ssim=b2)
 
 
 K = Run('SR_Results.csv')
