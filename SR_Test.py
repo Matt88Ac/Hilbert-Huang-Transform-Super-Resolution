@@ -97,11 +97,11 @@ class Run:
                         break
 
             hht_rmse = Normalized_RMSE(image, new_one)
-            hht_psnr = PSNR(image, new_one)
-            hht_ssim = SSIM(image, new_one)
+            hht_psnr = abs(PSNR(image, new_one))
+            hht_ssim = abs(SSIM(image, new_one))
 
-            ims_psnr = np.array([PSNR(image, upScaled[i]) for i in range(7)])
-            ims_ssim = np.array([SSIM(image, upScaled[i]) for i in range(7)])
+            ims_psnr = np.array([abs(PSNR(image, upScaled[i])) for i in range(7)])
+            ims_ssim = np.array([abs(SSIM(image, upScaled[i])) for i in range(7)])
             ims_rmse = np.array([Normalized_RMSE(image, upScaled[i]) for i in range(7)])
 
             b1 = min(ims_psnr.min(), hht_psnr)
