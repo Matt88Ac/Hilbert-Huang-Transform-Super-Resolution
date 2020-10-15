@@ -1,1 +1,10 @@
-File Name,No Cols,No Rows,No IMFs,RMSE - HHT2D,RMSE - Bicubic,RMSE - Lanczos,RMSE - Gaussian,RMSE - Bilinear,Best Interpolation Method
+File Name,No Cols,No Rows,No IMFs,Best RMSE,Best SSIM,Best PSNR
+00904.jpg,520,390,5,Bilinear,HHT,HHT
+00905.jpg,640,480,6,Bilinear,HHT,HHT
+00906.jpg,500,375,5,Bilinear,HHT,HHT
+00907.jpg,480,360,5,Bilinear,HHT,HHT
+00908.jpg,640,480,6,Bilinear,HHT,HHT
+00909.jpg,585,375,6,Bilinear,HHT,HHT
+00910.jpg,640,480,5,Bilinear,HHT,HHT
+00912.jpg,623,389,5,Bilinear,HHT,HHT
+00913.jpg,640,480,6,Bilinear,HHT,HHT
