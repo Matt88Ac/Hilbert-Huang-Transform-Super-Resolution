@@ -17,6 +17,7 @@ class Run:
         names = names['File Name'].unique()
 
         self.files = names
+        self.model = pickle.load(open('random_forest_model.pkl', 'rb'))
 
         self.runner()
 
@@ -51,3 +52,40 @@ class Run:
                                   })
         self.table = self.table.append(to_append)
         self.table.to_csv(self.name, index=False)
+
+    def __RMSE(self, expected: np.ndarray, estimated: np.ndarray):
+        return ((expected - estimated) ** 2).mean() ** 0.5
+
+    def runner(self):
+        toOpen = self.checkExistence()
+        interpolations = ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic']
+
+        for name in toOpen:
+            image = cv2.imread(name, 0)
+            rows, cols = image.shape
+            new_image = cv2.resize(image, (int(cols / 6), int(rows / 6)), interpolation=cv2.INTER_LANCZOS4)
+            decomposed = EMD2D(new_image)
+            noIMfs = len(decomposed)
+
+            upScaled = np.zeros(7)
+
+            for i in range(7):
+                upScaled[i] = self.__RMSE(image, def_interpolations(i)(new_image, (rows, cols)))
+
+            new_one = np.zeros(image.shape)
+
+            for i in range(len(decomposed)):
+                data = [name, 'IMF ' + str(i+1), decomposed.MeanFrequency[i], decomposed.varFrequency[i],
+                        rows, cols, decomposed.MedianFreq[i], decomposed.skewnessFreq[i], decomposed.kurtosisFreq[i],
+                        decomposed.meanColor[i], decomposed.varColor[i], decomposed.medianColor[i],
+                        decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]
+
+                interpolation = self.model.predict(data)
+
+
+
+
+
+
+
+K = Run('SR_Results.csv')
