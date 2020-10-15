@@ -112,17 +112,17 @@ class Run:
             if b1 == hht_psnr:
                 b1 = 'HHT'
             else:
-                b1 = interpolations[b1 == ims_psnr]
+                b1 = interpolations[b1 == ims_psnr][0]
 
             if b2 == hht_ssim:
                 b2 = 'HHT'
             else:
-                b2 = interpolations[ims_ssim == b2]
+                b2 = interpolations[ims_ssim == b2][0]
 
             if b3 == hht_rmse:
                 b3 = 'HHT'
             else:
-                b3 = interpolations[ims_rmse == b3]
+                b3 = interpolations[ims_rmse == b3][0]
 
             self.AddToCSV(NoIMF=noIMfs, name=name, resolution=image.shape, rmse=b3, psnr=b1, ssim=b2)
 
