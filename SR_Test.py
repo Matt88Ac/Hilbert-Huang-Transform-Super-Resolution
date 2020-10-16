@@ -6,6 +6,8 @@ import numpy as np
 import pickle
 from Develop.SRMetrices import PSNR, SSIM, Normalized_RMSE
 
+from matplotlib import pyplot as plt
+
 
 class Run:
     def __init__(self, name: str):
@@ -53,7 +55,7 @@ class Run:
                                   'HHT PSNR': [hht_psnr],
                                   'Best RMSE - Value': [rmse[1]],
                                   'Best SSIM - Value': [ssim[1]],
-                                 'Best PSNR - Value': [psnr[1]]
+                                  'Best PSNR - Value': [psnr[1]]
                                   })
         self.table = self.table.append(to_append)
         self.table.to_csv(self.name, index=False)
@@ -67,7 +69,7 @@ class Run:
             ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic'])
 
         for name in toOpen:
-            if name == '01228.jpg' or name == '01370.jpg' or name == '01547.jpg':
+            if name == '01228.jpg' or name == '01370.jpg' or name == '01547.jpg' or name == '02234.jpg':
                 continue
             image = cv2.imread('DATA/' + name, 0)
             print(name)
@@ -144,3 +146,5 @@ class Run:
 
 
 K = Run('SR_Results.csv')
+
+# scores = np.array([60, 66, 73, 75, 75, 76, 76, 78, 79, 79, 81, 83, 84, 86, 93, 95, 95])
