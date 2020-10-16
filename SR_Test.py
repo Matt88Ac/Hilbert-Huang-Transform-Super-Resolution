@@ -67,7 +67,7 @@ class Run:
             ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic'])
 
         for name in toOpen:
-            if name == '00903.jpg':
+            if name == '01228.jpg':
                 continue
             image = cv2.imread('DATA/' + name, 0)
             print(name)
