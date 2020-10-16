@@ -36,13 +36,15 @@ class Run:
         self.dir = dirc
         return np.array(os.listdir(dirc), dtype=str)
 
-    def AddToCSV(self, NoIMF, name, resolution, rmse, psnr, ssim, hht_rmse, hht_psnr, hht_ssim):
+    def AddToCSV(self, NoIMF, name, resolution, rmse, psnr, ssim, hht_rmse, hht_psnr, hht_ssim, from_row, from_col):
         rows = resolution[0]
         cols = resolution[1]
         to_append = pd.DataFrame({'File Name': [name],
                                   'No IMFs': [NoIMF],
                                   'No Rows': [rows],
                                   'No Cols': [cols],
+                                  'xRows': [from_row],
+                                  'xCols': [from_col],
                                   'Best RMSE': [rmse[0]],
                                   'Best SSIM': [ssim[0]],
                                   'Best PSNR': [psnr[0]],
@@ -70,7 +72,9 @@ class Run:
             image = cv2.imread('DATA/' + name, 0)
             print(name)
             rows, cols = image.shape
-            new_image = cv2.resize(image, (int(cols / 6), int(rows / 6)), interpolation=cv2.INTER_LANCZOS4)
+            new_row = np.random.uniform(1.5, 20, 1)[0]
+            new_col = np.random.uniform(1.5, 20, 1)[0]
+            new_image = cv2.resize(image, (int(cols / new_col), int(rows / new_row)), interpolation=cv2.INTER_LANCZOS4)
             decomposed = EMD2D(new_image)
             noIMfs = len(decomposed)
             print('done EMD')
@@ -135,7 +139,8 @@ class Run:
                 b3 = interpolations[ims_rmse == b3][0]
 
             self.AddToCSV(NoIMF=noIMfs, name=name, resolution=image.shape, rmse=(b3, v3), psnr=(b1, v1),
-                          ssim=(b2, v2), hht_psnr=hht_psnr, hht_ssim=hht_ssim, hht_rmse=hht_rmse)
+                          ssim=(b2, v2), hht_psnr=hht_psnr, hht_ssim=hht_ssim, hht_rmse=hht_rmse, from_col=new_col,
+                          from_row=new_row)
 
 
 K = Run('SR_Results.csv')
