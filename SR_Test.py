@@ -90,7 +90,7 @@ class Run:
                 for j in range(7):
                     if interpolation == interpolations[j]:
                         temp = def_interpolations[j](
-                            decomposed(i).reshape((decomposed.shape[0], decomposed.shape[1], 1)), (rows, cols))
+                            decomposed[i].reshape((decomposed.shape[0], decomposed.shape[1], 1)), (rows, cols))
                         if len(temp.shape) == 3:
                             temp = temp[:, :, 0]
                         new_one += temp
