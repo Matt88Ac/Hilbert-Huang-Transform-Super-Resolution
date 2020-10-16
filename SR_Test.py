@@ -72,8 +72,8 @@ class Run:
             image = cv2.imread('DATA/' + name, 0)
             print(name)
             rows, cols = image.shape
-            new_row = np.random.uniform(1.5, 20, 1)[0]
-            new_col = np.random.uniform(1.5, 20, 1)[0]
+            new_row = abs(np.random.normal(1.5, 5, 1)[0]) + 1
+            new_col = abs(np.random.normal(1.5, 5, 1)[0]) + 1
             new_image = cv2.resize(image, (int(cols / new_col), int(rows / new_row)), interpolation=cv2.INTER_LANCZOS4)
             decomposed = EMD2D(new_image)
             noIMfs = len(decomposed)
