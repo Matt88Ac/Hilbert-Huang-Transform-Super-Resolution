@@ -330,7 +330,7 @@ class EMD2D:
             return tmp
 
         else:
-            if imf == len(self) - 1:
+            if imf == len(self) + 1:
                 return self.Error
 
             if len(self.shape) == 2:
