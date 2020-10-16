@@ -36,16 +36,22 @@ class Run:
         self.dir = dirc
         return np.array(os.listdir(dirc), dtype=str)
 
-    def AddToCSV(self, NoIMF, name, resolution, rmse, psnr, ssim):
+    def AddToCSV(self, NoIMF, name, resolution, rmse, psnr, ssim, hht_rmse, hht_psnr, hht_ssim):
         rows = resolution[0]
         cols = resolution[1]
         to_append = pd.DataFrame({'File Name': [name],
                                   'No IMFs': [NoIMF],
                                   'No Rows': [rows],
                                   'No Cols': [cols],
-                                  'Best RMSE': [rmse],
-                                  'Best SSIM': [ssim],
-                                  'Best PSNR': [psnr]
+                                  'Best RMSE': [rmse[0]],
+                                  'Best SSIM': [ssim[0]],
+                                  'Best PSNR': [psnr[0]],
+                                  'HHT RMSE': [hht_rmse],
+                                  'HHT SSIM': [hht_ssim],
+                                  'HHT PSNR': [hht_psnr],
+                                  'Best RMSE - Value': [rmse[1]],
+                                  'Best SSIM - Value': [ssim[1]],
+                                 'Best PSNR - Value': [psnr[1]]
                                   })
         self.table = self.table.append(to_append)
         self.table.to_csv(self.name, index=False)
@@ -59,6 +65,8 @@ class Run:
             ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic'])
 
         for name in toOpen:
+            if name == '00903.jpg':
+                continue
             image = cv2.imread('DATA/' + name, 0)
             print(name)
             rows, cols = image.shape
@@ -104,9 +112,12 @@ class Run:
             ims_ssim = np.array([abs(SSIM(image, upScaled[i])) for i in range(7)])
             ims_rmse = np.array([Normalized_RMSE(image, upScaled[i]) for i in range(7)])
 
-            b1 = min(ims_psnr.min(), hht_psnr)
-            b2 = min(ims_ssim.min(), hht_ssim)
+            b1 = max(ims_psnr.max(), hht_psnr)
+            b2 = max(ims_ssim.max(), hht_ssim)
             b3 = min(ims_rmse.min(), hht_rmse)
+            v1 = b1
+            v2 = b2
+            v3 = b3
 
             if b1 == hht_psnr:
                 b1 = 'HHT'
@@ -123,7 +134,8 @@ class Run:
             else:
                 b3 = interpolations[ims_rmse == b3][0]
 
-            self.AddToCSV(NoIMF=noIMfs, name=name, resolution=image.shape, rmse=b3, psnr=b1, ssim=b2)
+            self.AddToCSV(NoIMF=noIMfs, name=name, resolution=image.shape, rmse=(b3, v3), psnr=(b1, v1),
+                          ssim=(b2, v2), hht_psnr=hht_psnr, hht_ssim=hht_ssim, hht_rmse=hht_rmse)
 
 
 K = Run('SR_Results.csv')
