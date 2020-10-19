@@ -1,9 +1,17 @@
 import cv2
+import pickle
 from Develop.EMD2D import EMD2D
 
-img = cv2.imread('DATA/sammy.jpg', 0)
-deco = EMD2D(img)
-k = deco[0]
-for i in range(1, len(deco)):
-    cv2.imwrite('Phase_' + str(i) + '.jpg', k)
-    k += deco[i]
+model = pickle.load(open('Develop/random_forest_model.pkl', 'rb'))
+img = cv2.imread('DATA/giraffes.jpg', 0)
+rows = img.shape[0]
+cols = img.shape[1]
+img = cv2.resize(img, (int(cols/6), int(rows/6)), interpolation=cv2.INTER_LANCZOS4)
+decomposed = EMD2D(img)
+for i in range(len(decomposed)):
+    data = [[0, decomposed.MeanFrequency[i], decomposed.varFrequency[i],
+             rows/6, cols/6, decomposed.MedianFreq[i], decomposed.skewnessFreq[i], decomposed.kurtosisFreq[i],
+             decomposed.meanColor[i], decomposed.varColor[i], decomposed.medianColor[i],
+             decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]]
+
+    print("The best interpolation for IMF {} is ".format(i+1) + model.predict(data)[0])
