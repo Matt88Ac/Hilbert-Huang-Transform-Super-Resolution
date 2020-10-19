@@ -3,6 +3,7 @@
     <words>
       <w>bicubic</w>
       <w>bilinear</w>
+      <w>coolwarm</w>
       <w>dirc</w>
       <w>dtype</w>
       <w>imfs</w>
@@ -12,6 +13,7 @@
       <w>psnr</w>
       <w>rmse</w>
       <w>ssim</w>
+      <w>viridis</w>
     </words>
   </dictionary>
 </component>
