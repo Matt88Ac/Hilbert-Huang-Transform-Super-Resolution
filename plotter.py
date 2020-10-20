@@ -3,10 +3,10 @@ import pickle
 from Develop.EMD2D import EMD2D
 
 model = pickle.load(open('Develop/random_forest_model.pkl', 'rb'))
-img = cv2.imread('DATA/giraffes.jpg', 0)
+img = cv2.imread('DATA/dog.jpg', 0)
 rows = img.shape[0]
 cols = img.shape[1]
-img = cv2.resize(img, (int(cols/6), int(rows/6)), interpolation=cv2.INTER_LANCZOS4)
+img = cv2.resize(img, (int(cols/3), int(rows/3)), interpolation=cv2.INTER_LANCZOS4)
 decomposed = EMD2D(img)
 for i in range(len(decomposed)):
     data = [[0, decomposed.MeanFrequency[i], decomposed.varFrequency[i],
