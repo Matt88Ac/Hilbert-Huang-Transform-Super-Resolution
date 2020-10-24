@@ -22,25 +22,24 @@ for i in range(len(decomposed)):
     print("The best interpolation for IMF {} is ".format(i+1) + model.predict(data)[0])
 """
 
-x = np.linspace(-4*np.pi, 4*np.pi, 10000)
-y = 3 * np.sin(2 * x) - np.cos(x)
+x = np.linspace(-4 * np.pi, 4 * np.pi, 10000)
+y = 3 * np.sin(2 * x) - np.cos(x) - np.exp(np.abs(x) ** 0.6 * (-1))*6
 
-#mx_points = np.where(np.abs(y - y.max()) <= 0.00001)
-#mn_points = np.where(np.abs(y - y.min()) <= 0.00001)
+# mx_points = np.where(np.abs(y - y.max()) <= 0.00001)
+# mn_points = np.where(np.abs(y - y.min()) <= 0.00001)
 
 mx_points, _ = find_peaks(y, height=0)
-mn_points, _ = find_peaks(y*(-1), height=0)
+mn_points, _ = find_peaks(y * (-1), height=0)
 
-upper = interpolate.Rbf(x[mx_points], y[mx_points], function='thin_plate')
-lower = interpolate.Rbf(x[mn_points], y[mn_points], function='thin_plate')
-
+upper = interpolate.CubicSpline(x[mx_points], y[mx_points])
+lower = interpolate.CubicSpline(x[mn_points], y[mn_points])
 
 plt.grid()
-#plt.xlim(-9.5, 9.5)
+plt.ylim(-7.5, 7)
 plt.plot(x, y)
 plt.plot(x[mx_points], y[mx_points], 'go')
 plt.plot(x[mn_points], y[mn_points], 'ro')
-plt.plot(x, x*0)
+plt.plot(x, x * 0)
 plt.plot(x, upper(x))
 plt.plot(x, lower(x))
 plt.plot(x, (lower(x)+upper(x))/2, c='black', label='candidate to IMF')
