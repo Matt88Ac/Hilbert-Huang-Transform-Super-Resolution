@@ -20,10 +20,11 @@ for i in range(len(decomposed)):
              decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]]
 
     print("The best interpolation for IMF {} is ".format(i+1) + model.predict(data)[0])
+
 """
 
 x = np.linspace(-4 * np.pi, 4 * np.pi, 10000)
-y = 3 * np.sin(2 * x) - np.cos(x) - np.exp(np.abs(x) ** 0.6 * (-1))*6
+y = 3 * np.sin(2 * x) - np.cos(x)
 
 # mx_points = np.where(np.abs(y - y.max()) <= 0.00001)
 # mn_points = np.where(np.abs(y - y.min()) <= 0.00001)
@@ -31,17 +32,16 @@ y = 3 * np.sin(2 * x) - np.cos(x) - np.exp(np.abs(x) ** 0.6 * (-1))*6
 mx_points, _ = find_peaks(y, height=0)
 mn_points, _ = find_peaks(y * (-1), height=0)
 
-upper = interpolate.CubicSpline(x[mx_points], y[mx_points])
-lower = interpolate.CubicSpline(x[mn_points], y[mn_points])
-
+upper = interpolate.Rbf(x[mx_points], y[mx_points], kind='thin_plate')
+lower = interpolate.Rbf(x[mn_points], y[mn_points], kind='thin_plate')
+plt.ylim(-9, 9)
 plt.grid()
-plt.ylim(-7.5, 7)
-plt.plot(x, y)
+plt.plot(x, y, label='Signal')
 plt.plot(x[mx_points], y[mx_points], 'go')
 plt.plot(x[mn_points], y[mn_points], 'ro')
 plt.plot(x, x * 0)
-plt.plot(x, upper(x))
-plt.plot(x, lower(x))
-plt.plot(x, (lower(x)+upper(x))/2, c='black', label='candidate to IMF')
+plt.plot(x, upper(x), label='Upper envelope')
+plt.plot(x, lower(x), label='Lower envelope')
+#plt.plot(x, (lower(x)+upper(x))/2, c='black', label='Candidate to IMF')
 plt.legend()
 plt.show()
