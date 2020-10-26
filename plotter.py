@@ -5,6 +5,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import interpolate
 from scipy.signal import find_peaks
+import pandas as pd
+import seaborn as sns
+
+df = pd.read_csv('imputed_interpolations.csv')
+sns.set_theme(style="darkgrid")
+sns.countplot(x='Interpolation Method', hue='IMF Spot', data=df).set_title('Interpolation Methods Distribution')
+
+plt.show()
 
 """""""""
 model = pickle.load(open('Develop/random_forest_model.pkl', 'rb'))
@@ -21,7 +29,6 @@ for i in range(len(decomposed)):
 
     print("The best interpolation for IMF {} is ".format(i+1) + model.predict(data)[0])
 
-"""
 
 x = np.linspace(-4 * np.pi, 4 * np.pi, 10000)
 y = 3 * np.sin(2 * x) - np.cos(x)
@@ -45,3 +52,4 @@ plt.plot(x, lower(x), label='Lower envelope')
 #plt.plot(x, (lower(x)+upper(x))/2, c='black', label='Candidate to IMF')
 plt.legend()
 plt.show()
+"""
