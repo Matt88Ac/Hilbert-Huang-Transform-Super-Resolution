@@ -248,20 +248,10 @@ class EMD2D:
 
             def emd_images_col(colOfImage: np.ndarray):
                 to_ret = self.EMD(colOfImage).decompose()
-                return to_ret  # .reshape((to_ret.shape[1], to_ret.shape[0]))
-
-            def fftMyIMF(imf: np.ndarray) -> np.ndarray:
-                return np.fft.fft(imf).real
-
-            def decAndFFT(colOfImage: np.ndarray) -> np.ndarray:
-                decCol = emd_images_col(colOfImage)
-                # dft = fftMyIMF(decCol)
-                # self.MeanFrequency = np.append(self.MeanFrequency, dft.mean(axis=1))
-                # self.varFrequency = np.append(self.varFrequency, dft.std(axis=1))
-                return decCol
+                return to_ret
 
             for i in range(img.shape[1]):
-                newImf = decAndFFT(img[:, i])
+                newImf = emd_images_col(img[:, i])
                 if len(self.IMFs) == 0:
                     self.IMFs = newImf.copy().reshape((newImf.shape[0], 1, newImf.shape[1]))
                     self.NoIMFs = self.IMFs.shape[0]
