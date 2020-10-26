@@ -15,11 +15,11 @@ class Run:
         self.name = name
         self.table = pd.read_csv(name, index_col=False)
 
-        names = pd.read_csv('interpolations.csv')
+        names = pd.read_csv('CSVs/interpolations.csv')
         names = names['File Name'].unique()
 
         self.files = np.append(names, self.table['File Name'])
-        self.model = pickle.load(open('random_forest_model.pkl', 'rb'))
+        self.model = pickle.load(open('Develop/random_forest_model2.pkl', 'rb'))
 
         self.runner()
 
@@ -94,7 +94,7 @@ class Run:
 
             for i in range(len(decomposed)):
 
-                data = [[0, decomposed.MeanFrequency[i], decomposed.varFrequency[i],
+                data = [[decomposed.MeanFrequency[i], decomposed.varFrequency[i],
                          rows, cols, decomposed.MedianFreq[i], decomposed.skewnessFreq[i], decomposed.kurtosisFreq[i],
                          decomposed.meanColor[i], decomposed.varColor[i], decomposed.medianColor[i],
                          decomposed.skewnessColor[i], decomposed.kurtosisColor[i]]]
@@ -145,6 +145,4 @@ class Run:
                           from_row=new_row)
 
 
-K = Run('SR_Results.csv')
-
-# scores = np.array([60, 66, 73, 75, 75, 76, 76, 78, 79, 79, 81, 83, 84, 86, 93, 95, 95])
+K = Run('SR_Results_new.csv')
