@@ -41,12 +41,16 @@ class EMD2D:
         self.skewnessFreq = np.zeros(self.__len__())
         self.kurtosisFreq = np.zeros(self.__len__())
         self.MedianFreq = np.zeros(self.__len__())
+        self.entropyFreq = self.varFrequency.copy()
+        self.shapiroFreq = self.varFrequency.copy()
 
         self.meanColor = self.varFrequency.copy()
         self.varColor = self.meanColor.copy()
         self.skewnessColor = self.meanColor.copy()
         self.kurtosisColor = self.meanColor.copy()
         self.medianColor = self.varFrequency.copy()
+        self.entropyColor = self.varFrequency.copy()
+        self.shapiroColor = self.varFrequency.copy()
 
         for i in range(len(self)):
             if i < len(self):
@@ -60,12 +64,22 @@ class EMD2D:
             self.skewnessFreq[i] = stats.moment(r, 3, axis=None)
             self.kurtosisFreq[i] = stats.moment(r, 4, axis=None)
             self.MedianFreq[i] = np.median(r)
+            unique, counts = np.unique(r, return_counts=True)
+            counts /= np.sum(counts)
+            self.entropyFreq[i] = stats.entropy(counts, axis=None)
+            unique = stats.shapiro(r)
+            self.shapiroFreq[i] = unique.shapiro_test
 
             self.meanColor[i] = self[i].mean()
             self.varColor[i] = self[i].var()
             self.skewnessColor[i] = stats.moment(self[i], 3, axis=None)
             self.kurtosisColor[i] = stats.moment(self[i], 4, axis=None)
             self.medianColor[i] = np.median(self[i])
+            unique, counts = np.unique(self[i], return_counts=True)
+            counts /= np.sum(counts)
+            self.entropyColor[i] = stats.entropy(counts, axis=None)
+            unique = stats.shapiro(self[i])
+            self.shapiroColor[i] = unique.shapiro_test
 
         self.threshold = 0.5
         self.no_iterations = 15
