@@ -43,6 +43,7 @@ class EMD2D:
         self.MedianFreq = np.zeros(self.__len__())
         self.entropyFreq = self.varFrequency.copy()
         self.shapiroFreq = self.varFrequency.copy()
+        self.uniformityFreq = self.varFrequency.copy()
 
         self.meanColor = self.varFrequency.copy()
         self.varColor = self.meanColor.copy()
@@ -51,6 +52,7 @@ class EMD2D:
         self.medianColor = self.varFrequency.copy()
         self.entropyColor = self.varFrequency.copy()
         self.shapiroColor = self.varFrequency.copy()
+        self.uniformityColor = self.varFrequency.copy()
 
         for i in range(len(self)):
             if i < len(self):
@@ -69,6 +71,7 @@ class EMD2D:
             self.entropyFreq[i] = stats.entropy(counts, axis=None)
             unique = stats.shapiro(r)
             self.shapiroFreq[i] = unique.shapiro_test
+            self.uniformityFreq[i] = np.sum(counts ** 2)
 
             self.meanColor[i] = self[i].mean()
             self.varColor[i] = self[i].var()
@@ -80,6 +83,7 @@ class EMD2D:
             self.entropyColor[i] = stats.entropy(counts, axis=None)
             unique = stats.shapiro(self[i])
             self.shapiroColor[i] = unique.shapiro_test
+            self.uniformityColor[i] = np.sum(counts ** 2)
 
         self.threshold = 0.5
         self.no_iterations = 15
