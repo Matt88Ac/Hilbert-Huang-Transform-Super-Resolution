@@ -59,6 +59,12 @@ class newRun:
                                   'Kurtosis Color': [kurt_color],
                                   'Rows': [rows],
                                   'Cols': [cols],
+                                  'Entropy Color': [entrop_color],
+                                  'Shapiro Color': [shap_color],
+                                  'Uniformity Color': [uni_color],
+                                  'Entropy Frequency': [entrop_freq],
+                                  'Shapiro Frequency': [shap_freq],
+                                  'Uniformity Frequency': [uni_freq]
                                   })
         self.table = self.table.append(to_append)
         self.table.to_csv(self.fname, index=False)
