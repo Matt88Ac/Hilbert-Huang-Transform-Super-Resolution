@@ -119,7 +119,9 @@ class newRun:
                           var_freq=var_freq[i], interpolation=interpolation, mean_color=emd.meanColor[i],
                           med_freq=emd.MedianFreq[i], skew_freq=emd.skewnessFreq[i], skew_color=emd.skewnessColor[i],
                           kurt_freq=emd.kurtosisFreq[i], kurt_color=emd.kurtosisColor[i], var_color=emd.varColor[i],
-                          med_color=emd.medianColor[i])
+                          med_color=emd.medianColor[i], shap_color=emd.shapiroColor[i], shap_freq=emd.shapiroFreq[i],
+                          uni_color=emd.uniformityColor[i], uni_freq=emd.uniformityFreq[i],
+                          entrop_color=emd.entropyColor[i], entrop_freq=emd.entropyFreq[i])
 
     def runner(self):
         toOpen = self.checkExistence()
