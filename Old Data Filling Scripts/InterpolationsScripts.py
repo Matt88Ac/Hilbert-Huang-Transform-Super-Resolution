@@ -1,5 +1,6 @@
 from Develop.Interpolations import def_interpolations, imreadAndEMD, cv2
 from Develop.EMD2D import EMD2D
+from Develop.SRMetrices import SSIM
 import pandas as pd
 import os
 import numpy as np
@@ -38,12 +39,13 @@ class newRun:
             return np.array(os.listdir(dirc), dtype=str)
 
     def AddToCSV(self, NoIMF, name, resolution, interpolation, mean_freq, var_freq, skew_freq, med_freq, kurt_freq,
-                 mean_color, var_color, skew_color, med_color, kurt_color):
+                 mean_color, var_color, skew_color, med_color, kurt_color, uni_color, uni_freq, shap_color, shap_freq,
+                 entrop_color, entrop_freq):
         rows = resolution[0]
         cols = resolution[1]
-        channel = len(resolution)
         to_append = pd.DataFrame({'File Name': [name],
                                   'IMF Spot': [NoIMF],
+                                  'IMF Name': ['IMF ' + str(NoIMF)],
                                   'Interpolation Method': [interpolation],
                                   'Mean Frequency': [mean_freq],
                                   'Variance Frequency': [var_freq],
@@ -57,7 +59,6 @@ class newRun:
                                   'Kurtosis Color': [kurt_color],
                                   'Rows': [rows],
                                   'Cols': [cols],
-                                  'Channels': [channel]
                                   })
         self.table = self.table.append(to_append)
         self.table.to_csv(self.fname, index=False)
@@ -80,20 +81,20 @@ class newRun:
         return up_scaled
 
     @staticmethod
-    def getMinRMSE(original_imf: np.ndarray, up_scaled_imfs: np.ndarray):
+    def getMaxSSIM(original_imf: np.ndarray, up_scaled_imfs: np.ndarray):
 
         def RMSE(expected: np.ndarray, estimated: np.ndarray):
             diff = ((expected - estimated) ** 2).mean() ** 0.5
             return diff
 
-        minimum_error = 10 ** 10
+        minimum_error = 0
         spot = 0
 
         for i in range(up_scaled_imfs.shape[0]):
-            rmse = RMSE(original_imf, up_scaled_imfs[i])
-            if rmse < minimum_error:
+            ssim = SSIM(original_imf, up_scaled_imfs[i])
+            if ssim > minimum_error:
                 spot = i
-                minimum_error = rmse
+                minimum_error = ssim
         interpolations = ['Gaussian', 'Bicubic', 'Bilinear', 'Lanczos5', 'Lanczos3', 'Lanczos4', 'MitchelCubic']
         return interpolations[spot]
 
@@ -106,9 +107,9 @@ class newRun:
         for i in range(len(emd)):
             temp_imf = cv2.resize(emd(i), (int(shape[0] / 6), int(shape[1] / 6)), interpolation=cv2.INTER_LANCZOS4)
             up_scaled = self.upScale_Small_IMF(temp_imf, to_shape=shape)
-            interpolation = self.getMinRMSE(emd(i), up_scaled)
+            interpolation = self.getMaxSSIM(emd(i), up_scaled)
 
-            self.AddToCSV(NoIMF='IMF ' + str(i + 1), name=fname, resolution=shape, mean_freq=mean_freq[i],
+            self.AddToCSV(NoIMF=i + 1, name=fname, resolution=shape, mean_freq=mean_freq[i],
                           var_freq=var_freq[i], interpolation=interpolation, mean_color=emd.meanColor[i],
                           med_freq=emd.MedianFreq[i], skew_freq=emd.skewnessFreq[i], skew_color=emd.skewnessColor[i],
                           kurt_freq=emd.kurtosisFreq[i], kurt_color=emd.kurtosisColor[i], var_color=emd.varColor[i],

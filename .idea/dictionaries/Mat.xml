@@ -8,6 +8,7 @@
       <w>dtype</w>
       <w>imfs</w>
       <w>imread</w>
+      <w>kurtosis</w>
       <w>lanczos</w>
       <w>ndarray</w>
       <w>psnr</w>
