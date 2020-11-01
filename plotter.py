@@ -8,9 +8,11 @@ from scipy.signal import find_peaks
 import pandas as pd
 import seaborn as sns
 
-# df = pd.read_csv('imputed_interpolations.csv')
-# sns.set_theme(style="darkgrid")
-# sns.countplot(x='Interpolation Method', hue='IMF Spot', data=df).set_title('Interpolation Methods Distribution')
+df = pd.read_csv('imputed_interpolations.csv')
+sns.set_theme(style="darkgrid")
+#sns.countplot(x='Interpolation Method', data=df).set_title('Interpolation Methods Distribution')
+sns.distplot(df['Mean Color'])
+plt.show()
 
 """""""""
 model = pickle.load(open('Develop/random_forest_model.pkl', 'rb'))
