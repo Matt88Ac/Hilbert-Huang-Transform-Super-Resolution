@@ -5,13 +5,19 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy import interpolate
 from scipy.signal import find_peaks
+import scipy.stats as ss
 import pandas as pd
 import seaborn as sns
 
 df = pd.read_csv('imputed_interpolations.csv')
 sns.set_theme(style="darkgrid")
-#sns.countplot(x='Interpolation Method', data=df).set_title('Interpolation Methods Distribution')
-sns.distplot(df['Mean Color'])
+fig, ax = plt.subplots(1, 2, sharey=True, figsize=(15, 15))
+sns.histplot(df, x='Mean Color', hue='IMF Spot', ax=ax[0])
+sns.histplot(df, x='Mean Frequency', hue='IMF Spot', ax=ax[1])
+
+
+# sns.countplot(x='Interpolation Method', data=df).set_title('Interpolation Methods Distribution')
+
 plt.show()
 
 """""""""
